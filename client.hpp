@@ -1,17 +1,36 @@
 #ifndef CLIENT_HPP
 #define CLIENT_HPP
-#include"ser.hpp"
-
-class client
+#include <iostream>
+#include <string.h>
+#include <sys/socket.h>
+#include <strstream>
+#include <sys/types.h>
+#include <netdb.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <vector>
+#include <poll.h>
+#include <fcntl.h>
+#include <fstream>
+#include <sstream>
+#include <stdlib.h>
+#include <unistd.h>
+#include <map>
+class Client
 {
 private:
     std::string nickname;
     std::string username;
+    bool        is_authentifcated;
     char *mssg;
 public:
+    Client(){}
+    void set_authent(bool isauthent);
+    void set_nickname(std::string nick);
+    bool get_authent() const;
     bool client_reg(std::string cmd, std::string parm);
-    client();
-    ~client();
+    Client(bool is_connected, std::string nick, std::string user);
+    ~Client();
 };
 
 #endif
