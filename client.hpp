@@ -22,11 +22,15 @@ private:
     std::string nickname;
     std::string username;
     bool        is_authentifcated;
+    int         c_fd;
     char *mssg;
 public:
     Client(){}
     void set_authent(bool isauthent);
     void set_nickname(std::string nick);
+    void set_cfd(int cfd);
+    int get_clientfd() const;
+    std::string get_nickname() const;
     bool get_authent() const;
     bool client_reg(std::string cmd, std::string parm);
     Client(bool is_connected, std::string nick, std::string user);

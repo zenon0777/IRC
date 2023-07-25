@@ -30,11 +30,16 @@ private:
     int sfd;
 
 public:
-    Client clients[g_max_clients];
-    // std::map<int , Client> clients;
+    // Client clients[g_max_clients];
+    Client clients;
+    std::map<int , Client> cl;
     server(const char *port, const char *password);
     int server_socket();
     int authenticateClient(std::vector<std::string> c, int listener);
+    bool nickname_cmd(std::vector<std::string> &vec, int c_fd);
+    bool user_cmd(std::vector<std::string>vec, int c_fd);
+    bool is_identical(std::string nick, int cfd);
+    void removeclients(int cfd, int cfd2);
     int server_setup();
     int get_port();
     void set_sfd(int sfd);

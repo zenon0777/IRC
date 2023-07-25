@@ -80,6 +80,8 @@ int server::server_setup()
                 }
                 else
                 {
+                    cl.insert(std::pair<int,Client>(pfds[i].fd, clients));
+                    cl.at(pfds[i].fd).set_cfd(pfds[i].fd);
                     cmd_handler(buff, sfd, pfds[i].fd);
                     continue;
                 }
@@ -94,52 +96,106 @@ int server::server_setup()
 
 int server::authenticateClient(std::vector<std::string> c, int c_fd)
 {
-    std::cout << c[1] << std::endl;
-    if (clients[c_fd].get_authent() == true && c[1] != _password)
+    if (cl.at(c_fd).get_authent() == true && c[1] != _password)
     {
-        clients[c_fd].set_authent(false);
+        cl.at(c_fd).set_authent(false);
         return 2;
     }
     else if (c[1] == _password)
     {
-        puts("yes0");
-        clients[c_fd].set_authent(true);
+        cl.at(c_fd).set_authent(true);
         return 0;
     }
     else
     {
-        clients[c_fd].set_authent(false);
+        cl.at(c_fd).set_authent(false);
         return 2;
     }
     return 1;
 }
 
+void server::removeclients(int cfd, int cfd2){
+    close(cfd);
+    close(cfd2);
+    std::vector<struct pollfd>::iterator pit = pfds.begin();
+    for (pit; pit!= pfds.end(); ++pit){
+        if(pit->fd == cfd2)
+            break;
+    }
+    pfds.erase(pit);
+    for (pit = pfds.begin(); pit!= pfds.end(); ++pit){
+        if(pit->fd == cfd)
+            break;
+    }
+    pfds.erase(pit);
+}
+
+bool server::is_identical(std::string nick, int c_fd){
+    std::map<int, Client>::iterator m_it = cl.begin();
+    std::string nickname;
+
+    for(m_it; m_it != cl.end(); ++m_it){
+        if (m_it->first != c_fd){
+            nickname = m_it->second.get_nickname();
+            if (!nickname.empty() && (nickname == nick)){
+                removeclients(c_fd, m_it->first);
+                cl.erase(c_fd);
+                cl.erase(m_it->first);
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+bool server::nickname_cmd(std::vector<std::string> &vec, int c_fd)
+{
+    if (is_identical(vec[1], c_fd) == false)
+    {
+        std::map<int,Client>::iterator it = cl.find(c_fd);
+        it->second.set_nickname(vec[1]);
+    }
+    //handle identical messg error
+}
+
+bool server::user_cmd(std::vector<std::string>vec, int c_fd){
+    int pos = vec[2].find(':');    
+    if (vec.size() < 3)
+        return false;
+    else{
+        if ((pos = vec[2].find(':')) != std::string::npos) && pos == vec)
+            return false;
+    }
+}
+
 bool server::cmd_handler(char *buff, int sfd, int client_fd)
 {
     std::string cmd(buff);
-    trim(cmd);
-    std::cout << cmd.length() << std::endl;
+    cmd = trim(cmd);
     std::istringstream ss(cmd);
     std::string token;
     std::vector<std::string> vec;
+    bool auth = cl.at(client_fd).get_authent();
     while (std::getline(ss, token, ' '))
     {
         vec.push_back(token);
     }
-
-    if (vec[0] == "PASS")
-    {
-        if (authenticateClient(vec, client_fd) == 2)
-            send(client_fd, "Invalid Password:...\n", 22, 0);
-        else if (authenticateClient(vec, client_fd) == 0)
-            send(client_fd, "Authentificated:...\n", 21, 0);
-    }
-    if (vec[0] == "NICK")
-    {
-        if (clients[client_fd].get_authent() == false)
-            send(client_fd, "Need to authentificate", 23, 0);
+    if (vec.size() > 2){
+        if (vec[0] == "PASS")
+        {
+            //if nick/username seted before mention it 
+            int flag = authenticateClient(vec, client_fd);
+            if (flag == 2)
+                send(client_fd, "Invalid Password:...\n", 22, 0);
+            else if (flag == 0)
+                send(client_fd, "Authentificated:...\n", 21, 0);
+        }
+        if (vec[0] == "NICK" && auth == true)
+            nickname_cmd(vec, client_fd);
+        else if (vec[0] == "USER" && auth == true)
+            user_cmd(vec, client_fd);
         else
-            clients[client_fd].set_nickname(vec[2]);
+            send(client_fd, "Need authentification to continue:...\n", 39, 0);
     }
 }
 
