@@ -117,7 +117,8 @@ int server::authenticateClient(std::vector<std::string> c, int c_fd)
 void server::removeclients(int cfd, int cfd2){
     close(cfd);
     close(cfd2);
-    std::vector<struct pollfd>::iterator pit = pfds.begin();
+    std::vector<struct pollfd>::iterator pit;
+    pit = pfds.begin();
     for (pit; pit!= pfds.end(); ++pit){
         if(pit->fd == cfd2)
             break;
@@ -154,17 +155,19 @@ bool server::nickname_cmd(std::vector<std::string> &vec, int c_fd)
     {
         std::map<int,Client>::iterator it = cl.find(c_fd);
         it->second.set_nickname(vec[1]);
+        std::cout << it->second.get_nickname() <<std::endl;
     }
     //handle identical messg error
 }
 
 bool server::user_cmd(std::vector<std::string>vec, int c_fd){
-    int pos = vec[2].find(':');    
-    if (vec.size() < 3)
+    size_t pos = vec[2].find(':');
+    std::string r_name;
+    if (vec.size() < 3 || *(vec[2].begin()) != ':')
         return false;
     else{
-        if ((pos = vec[2].find(':')) != std::string::npos) && pos == vec)
-            return false;
+        r_name = vec[2].substr(1);
+        cl.at(c_fd).set_username(vec[1], r_name);
     }
 }
 
@@ -197,6 +200,12 @@ bool server::cmd_handler(char *buff, int sfd, int client_fd)
         else
             send(client_fd, "Need authentification to continue:...\n", 39, 0);
     }
+    if (clients.get_authent() == true)
+        std::cout << "YES" << std::endl;
+    std::cout << clients.get_username() << std::endl;
+    std::cout << clients.get_realname() << std::endl;
+    std::cout << clients.get_nickname() << std::endl;
+    return true;
 }
 
 void server::set_sfd(int fd)
