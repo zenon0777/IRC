@@ -17,7 +17,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <map>
-#include "client.hpp"
+#include "channel.hpp"
 
 #define g_max_clients 10
 
@@ -32,6 +32,8 @@ private:
 public:
     // Client clients[g_max_clients];
     Client clients;
+    channel channels;
+    std::map<std::string, channel>chan_map;
     std::map<int , Client> cl;
     server(const char *port, const char *password);
     int server_socket();
@@ -39,6 +41,7 @@ public:
     bool nickname_cmd(std::vector<std::string> &vec, int c_fd);
     bool user_cmd(std::vector<std::string>vec, int c_fd);
     bool is_identical(std::string nick, int cfd);
+    bool is_channelexist(std::string name);
     void removeclients(int cfd, int cfd2);
     int server_setup();
     int get_port();

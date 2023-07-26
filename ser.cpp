@@ -7,12 +7,16 @@ int server::server_socket()
     seraddr.ai_family = AF_UNSPEC;
     seraddr.ai_socktype = SOCK_STREAM;
     seraddr.ai_flags = AI_PASSIVE;
-
+    int o = 1;
     getaddrinfo(NULL, _port, &seraddr, &res);
     int sfd;
     if ((sfd = socket(res->ai_family, SOCK_STREAM, res->ai_protocol)) == -1)
     {
         perror("Socket :error");
+        exit(1);
+    }
+    if (setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, &o, sizeof(o)) == -1){
+        perror("Socketopt :error");
         exit(1);
     }
     if (bind(sfd, res->ai_addr, res->ai_addrlen) == -1)
@@ -83,6 +87,13 @@ int server::server_setup()
                     cl.insert(std::pair<int,Client>(pfds[i].fd, clients));
                     cl.at(pfds[i].fd).set_cfd(pfds[i].fd);
                     cmd_handler(buff, sfd, pfds[i].fd);
+                    // std::map<std::string, channel>::iterator it = chan_map.begin();
+                    // for(it; it != chan_map.end(); it++)
+                    // {std::cout << it->second._chan_name <<std::endl;
+                    //     std::vector<int> ls = it->second.clients_fd;
+                    //     for (int i = 0; i < ls.size(); i++)
+                    //         std::cout << ls[i] << std::endl;
+                    // }
                     continue;
                 }
                 continue;
@@ -90,6 +101,7 @@ int server::server_setup()
         }
     }
     close(sfd);
+    return 0;
 }
 
 // handl user registration i.e PASS pass / USER username :realname / NICK nickname
@@ -115,6 +127,7 @@ int server::authenticateClient(std::vector<std::string> c, int c_fd)
 }
 
 void server::removeclients(int cfd, int cfd2){
+    //handle nickcollision error mssg
     close(cfd);
     close(cfd2);
     std::vector<struct pollfd>::iterator pit;
@@ -155,7 +168,6 @@ bool server::nickname_cmd(std::vector<std::string> &vec, int c_fd)
     {
         std::map<int,Client>::iterator it = cl.find(c_fd);
         it->second.set_nickname(vec[1]);
-        std::cout << it->second.get_nickname() <<std::endl;
     }
     //handle identical messg error
 }
@@ -183,29 +195,50 @@ bool server::cmd_handler(char *buff, int sfd, int client_fd)
     {
         vec.push_back(token);
     }
-    if (vec.size() > 2){
-        if (vec[0] == "PASS")
-        {
-            //if nick/username seted before mention it 
-            int flag = authenticateClient(vec, client_fd);
-            if (flag == 2)
-                send(client_fd, "Invalid Password:...\n", 22, 0);
-            else if (flag == 0)
-                send(client_fd, "Authentificated:...\n", 21, 0);
-        }
+    if (vec.size() == 2 && vec[0] == "PASS")
+    {
+        //if nick/username seted before mention it 
+        int flag = authenticateClient(vec, client_fd);
+        if (flag == 2)
+            send(client_fd, "Invalid Password:...\n", 22, 0);
+        else if (flag == 0)
+            send(client_fd, "Authentificated:...\n", 21, 0);
+    }
+    if (vec.size() >= 2){
         if (vec[0] == "NICK" && auth == true)
             nickname_cmd(vec, client_fd);
         else if (vec[0] == "USER" && auth == true)
             user_cmd(vec, client_fd);
+        //handle channel cmd; channel(id, channel-name, clients-obj)
+        if (vec[0] == "JOIN" && auth== true)
+        {
+            if (is_channelexist(vec[1]) == false)
+            {
+                if (channels.add_channel(vec, cl.at(client_fd)) == true)
+                    chan_map.insert(std::pair<std::string, channel>(vec[1], channels));
+                else
+                    send(client_fd, "channel not exist key not neccessaire", 38, 0);
+            }
+            else
+            {
+
+            }
+        }
+        // handle operator cmds
+        // if (vec[0] == "INVITE" && auth == true){
+        //     if (get_clientfd() != 0)
+        //         if (is_clientinchannel(client_fd, vec) == true)
+        // }
         else
             send(client_fd, "Need authentification to continue:...\n", 39, 0);
     }
-    if (clients.get_authent() == true)
-        std::cout << "YES" << std::endl;
-    std::cout << clients.get_username() << std::endl;
-    std::cout << clients.get_realname() << std::endl;
-    std::cout << clients.get_nickname() << std::endl;
     return true;
+}
+
+bool server::is_channelexist(std::string name){
+    if (chan_map.find(name) != chan_map.end())
+        return true;
+    return false;
 }
 
 void server::set_sfd(int fd)

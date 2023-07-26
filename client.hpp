@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <map>
+
 class Client
 {
 private:
@@ -26,7 +27,9 @@ private:
     int         c_fd;
     char *mssg;
 public:
-    Client(){}
+    Client();
+    Client(const Client &obj);
+    // channel channels;
     void set_authent(bool isauthent);
     void set_nickname(std::string nick);
     void set_username(std::string user, std::string r_name);

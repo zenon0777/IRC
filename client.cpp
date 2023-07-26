@@ -4,10 +4,18 @@ Client::Client(bool is_connected, std::string nick, std::string user) : is_authe
 ,nickname(nick), username(user)
 {
 }
-
+Client::Client(){this->is_authentifcated = false;}
 int Client::get_clientfd() const
 {
     return this->c_fd;
+}
+
+Client::Client(const Client &obj){
+    this->c_fd = obj.c_fd;
+    this->is_authentifcated = obj.is_authentifcated;
+    this->nickname = obj.nickname;
+    this->real_name = obj.real_name;
+    this->username = obj.username;
 }
 
 void Client::set_username(std::string user, std::string r_name){
