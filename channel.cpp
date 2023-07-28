@@ -21,7 +21,9 @@ channel::channel(const channel &obj)
 
 void    channel::add_member(int c_fd, std::string name){
     this->clients_fd.push_back(c_fd);
+    std::cout << this->clients_fd[1] << std::endl;
     this->chan_members.insert(std::pair<std::string,std::vector<int> >(name, this->clients_fd));
+    // add member channel obj
 }
 
 // add channel to channel map and setname and member as an operator

@@ -44,11 +44,24 @@ public:
     bool is_channelexist(std::string name);
     void removeclients(int cfd, int cfd2);
     int server_setup();
+    channel get_channel(std::string);
+    int get_clientfd(std::string name);
     int get_port();
     void set_sfd(int sfd);
     std::string get_pass();
     bool cmd_handler(char *mssg, int listener, int client_fd);
     ~server();
 };
+
+std::ostream &operator<<(std::ostream & o, std::map<std::string, channel> const& m) {
+
+    for(std::map<std::string, channel>::const_iterator it = m.begin(); it != m.end(); it++)
+    {
+        std::vector<int> ls = it->second.clients_fd;
+        for (int i = 0; i < ls.size(); i++)
+            o << ls[i] << std::endl;
+    }
+    return o;
+}
 
 #endif
