@@ -49,6 +49,7 @@ int server::server_setup()
     char buff[256] = "\0";
     socklen_t addr_len;
     int nfds = 1;
+    //get socket fd
     set_sfd(server_socket());
     pfds.push_back((struct pollfd){sfd, POLLIN, nfds});
     while (true)
@@ -71,6 +72,7 @@ int server::server_setup()
             if (pfds[i].revents & POLLIN)
             {
                 size_t nbytes = recv(pfds[i].fd, (void *)buff, sizeof(buff), 0);
+                std::cout << "bytes read:" << nbytes << std::endl;
                 if (nbytes <= 0)
                 {
                     if (nbytes == 0)
@@ -146,9 +148,6 @@ bool server::is_identical(std::string nick, int c_fd){
         if (m_it->first != c_fd){
             nickname = m_it->second.get_nickname();
             if (!nickname.empty() && (nickname == nick)){
-                // removeclients(c_fd, m_it->first);
-                // cl.erase(c_fd);
-                // cl.erase(m_it->first);
                 return true;
             }
         }
@@ -194,7 +193,7 @@ bool server::send_messg(std::string mssg, int client_fd){
     return true;
 }
 
-bool server::handle_recievers(std::vector<std::string> &vec, int c_fd){
+bool server::handle_recievers(std::vector<std::string> vec, int c_fd){
     std::string nick_names = vec[1];
     std::istringstream ss(nick_names);
     std::string token;
@@ -205,7 +204,7 @@ bool server::handle_recievers(std::vector<std::string> &vec, int c_fd){
     for (int i = 0; i <= nicks.size(); i++)
     {
         int cfd = get_clientfd(nicks[i]);
-        if (cfd > 0)
+        if (cfd > 0 && c_fd != cfd)
             send_messg(vec[2], cfd);
     }
 }
@@ -221,6 +220,7 @@ bool server::cmd_handler(char *buff, int sfd, int client_fd)
     bool auth = cl.at(client_fd).get_authent();
     while (std::getline(ss, token, ' '))
     {
+        token = trim(token);
         vec.push_back(token);
     }
     if (vec.size() == 2 && vec[0] == "PASS")
@@ -232,7 +232,7 @@ bool server::cmd_handler(char *buff, int sfd, int client_fd)
         else if (flag == 0)
             send(client_fd, "Authentificated:...\n", 21, 0);
     }
-    if (vec.size() >= 2){
+    else if (vec.size() >= 2){
         if (vec[0] == "NICK" && auth == true)
             nickname_cmd(vec, client_fd);
         else if (vec[0] == "USER" && auth == true)
@@ -241,7 +241,7 @@ bool server::cmd_handler(char *buff, int sfd, int client_fd)
         else if (vec[0] == "PRIVMSG" && auth == true){
             handle_recievers(vec, client_fd);
         }
-        if (vec[0] == "JOIN" && auth== true)
+        else if (vec[0] == "JOIN" && auth== true)
         {
             // parser 
             if (is_channelexist(vec[1]) == false){
@@ -259,7 +259,7 @@ bool server::cmd_handler(char *buff, int sfd, int client_fd)
         //     if (get_clientfd() != 0)
         //         if (is_clientinchannel(client_fd, vec) == true)
         // }
-        else
+        else if (auth == false)
             send(client_fd, "Need authentification to continue:...\n", 39, 0);
     }
     return true;
@@ -267,11 +267,13 @@ bool server::cmd_handler(char *buff, int sfd, int client_fd)
 
 int server::get_clientfd(std::string name){
     std::map<int, Client>::iterator it;
-    for(it = cl.begin();it!=cl.end();it++)
+    for(it = cl.begin();it!=cl.end();++it)
     {
-        if (it->second.get_nickname().compare(name) ==0)
-            return it->first;
+        std::cout << it->first << "  ::  " << it->second.get_nickname() << "  >>>  " << name <<std::endl;
+        if (it->second.get_nickname() == name){
+            return it->first;}
     }
+    return -1;
 }
 
 bool server::is_channelexist(std::string name){

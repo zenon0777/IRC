@@ -42,7 +42,7 @@ void Client::set_nickname(std::string nick){
     this->nickname = nick;
 }
 
-std::string Client::get_nickname() const{return nickname;}
+std::string Client::get_nickname() const{return this->nickname;}
 
 Client::~Client()
 {
