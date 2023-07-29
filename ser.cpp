@@ -146,9 +146,9 @@ bool server::is_identical(std::string nick, int c_fd){
         if (m_it->first != c_fd){
             nickname = m_it->second.get_nickname();
             if (!nickname.empty() && (nickname == nick)){
-                removeclients(c_fd, m_it->first);
-                cl.erase(c_fd);
-                cl.erase(m_it->first);
+                // removeclients(c_fd, m_it->first);
+                // cl.erase(c_fd);
+                // cl.erase(m_it->first);
                 return true;
             }
         }
@@ -164,6 +164,8 @@ bool server::nickname_cmd(std::vector<std::string> &vec, int c_fd)
         std::map<int,Client>::iterator it = cl.find(c_fd);
         it->second.set_nickname(vec[1]);
     }
+    else
+        send(c_fd, "ERROR nickname already in use\n", 30, 0);
     //handle identical messg error
 }
 
@@ -183,6 +185,31 @@ channel server::get_channel(std::string name){
     ch = chan_map.find(name);
     return ch->second;
 }
+
+bool server::send_messg(std::string mssg, int client_fd){
+    const char *buff = mssg.c_str();
+    int len = mssg.length();
+    if(send(client_fd, buff, len, 0) < 0)
+        return false;
+    return true;
+}
+
+bool server::handle_recievers(std::vector<std::string> &vec, int c_fd){
+    std::string nick_names = vec[1];
+    std::istringstream ss(nick_names);
+    std::string token;
+    std::vector<std::string> nicks;
+
+    while (std::getline(ss, token, ',')){
+        nicks.push_back(token);}
+    for (int i = 0; i <= nicks.size(); i++)
+    {
+        int cfd = get_clientfd(nicks[i]);
+        if (cfd > 0)
+            send_messg(vec[2], cfd);
+    }
+}
+
 
 bool server::cmd_handler(char *buff, int sfd, int client_fd)
 {
@@ -211,6 +238,9 @@ bool server::cmd_handler(char *buff, int sfd, int client_fd)
         else if (vec[0] == "USER" && auth == true)
             user_cmd(vec, client_fd);
         //handle channel cmd; channel(id, channel-name, clients-obj)
+        else if (vec[0] == "PRIVMSG" && auth == true){
+            handle_recievers(vec, client_fd);
+        }
         if (vec[0] == "JOIN" && auth== true)
         {
             // parser 
