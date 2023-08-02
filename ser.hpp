@@ -46,6 +46,7 @@ public:
     bool handle_recievers(std::vector<std::string> vec, int c_fd);
     bool send_messg(std::string mssg, int client_fd);
     int server_setup();
+    bool is_operator(std::string chan_name, int client_fd);
     channel get_channel(std::string);
     int get_clientfd(std::string name);
     int get_port();
@@ -55,15 +56,15 @@ public:
     ~server();
 };
 
-std::ostream &operator<<(std::ostream & o, std::map<std::string, channel> const& m) {
+// std::ostream &operator<<(std::ostream & o, std::map<std::string, channel> const& m) {
 
-    for(std::map<std::string, channel>::const_iterator it = m.begin(); it != m.end(); it++)
-    {
-        std::vector<int> ls = it->second.clients_fd;
-        for (int i = 0; i < ls.size(); i++)
-            o << ls[i] << std::endl;
-    }
-    return o;
-}
+//     for(std::map<std::string, channel>::const_iterator it = m.begin(); it != m.end(); it++)
+//     {
+//         std::vector<int> ls = it->second.clients_fd;
+//         for (int i = 0; i < ls.size(); i++)
+//             o << ls[i] << std::endl;
+//     }
+//     return o;
+// }
 
 #endif
