@@ -49,6 +49,8 @@ public:
     bool is_operator(std::string chan_name, int client_fd);
     channel get_channel(std::string);
     int get_clientfd(std::string name);
+    bool invite_sto_kanali(std::vector<std::string> vec, int client_fd);
+    bool engrafiete_sto_kanali(std::vector<std::string> vec, int client_fd);
     int get_port();
     void set_sfd(int sfd);
     std::string get_pass();

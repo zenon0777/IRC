@@ -7,21 +7,24 @@
 class channel
 {
 private:
-    int _id;
-    int _cl_fd;
+public:
     bool secure;
     bool is_inviteonly;
     int  user_limite;
+    bool is_limited;
+    size_t nbr_member;
     std::string chan_password;
     std::string topic;
     bool is_topic;
-public:
+    bool is_topicated;
     std::string _chan_name;
     std::vector<int>clients_fd;
     std::map<std::string, std::vector<int> > chan_members;
+    std::map<int ,std::string> user_nickname;
     std::vector<int>_operators_fd;
     std::map<std::string,std::vector<int> > get_chan_member();
-    void add_member(int c_fd, std::string);
+    void add_member(Client &, std::string);
+    void remove_member(Client &, std::string);
     bool add_mode(int cfd, std::vector<std::string> vec);
     bool is_secure(std::string chan_name);
     void set_topicated(bool);
@@ -33,7 +36,7 @@ public:
     bool is_member(int c_fd, std::string chan_name);
     bool change_topic(int, std::vector<std::string>);
     bool is_operator(std::string chan_name, int client_fd);
-    bool add_channel(std::vector<std::string>, Client&);
+    bool add_channel(std::string chan_name,Client &cl, bool secure);
     bool add_client(std::vector<std::string>,Client &cl);
     channel();
     channel(const channel &obj);
