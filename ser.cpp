@@ -19,6 +19,7 @@ int server::server_socket()
         perror("Socketopt :error");
         exit(1);
     }
+    fcntl(sfd, F_SETFL, O_NONBLOCK);
     if (bind(sfd, res->ai_addr, res->ai_addrlen) == -1)
     {
         perror("bind : error");
@@ -164,7 +165,7 @@ bool server::nickname_cmd(std::vector<std::string> &vec, int c_fd)
         it->second.set_nickname(trim(vec[1]));
     }
     else
-        send(c_fd, "ERROR nickname already in use\n", 30, 0);
+        send(c_fd, "ERROR nickname already in use\r\n", 30, 0);
     //handle identical messg error
     return true;
 }
@@ -190,8 +191,9 @@ channel server::get_channel(std::string name){
 
 bool server::send_messg(std::string mssg, int client_fd){
     size_t pos = mssg.find(':');
+    const char *buff;
     mssg = mssg.substr(pos);
-    const char *buff = mssg.c_str();
+    buff = mssg.c_str();
     if(send(client_fd, buff, sizeof(buff), 0) < 0)
         return false;
     return true;
@@ -245,7 +247,7 @@ bool server::engrafiete_sto_kanali(std::vector<std::string> vec, int client_fd)
 {
     if (vec.size() > 3)
     {
-        send(client_fd, "Too much params\n", 17, 0);
+        send(client_fd, "Too much params\r\n", 18, 0);
         return false;
     }        
     // check if user is already in the channel or not
@@ -261,7 +263,7 @@ bool server::engrafiete_sto_kanali(std::vector<std::string> vec, int client_fd)
     for (int i = 0; i < chans.size(); i++)
     {
         if (*chans[i].begin() != '#' && *chans[i].begin() != '&')
-            send(client_fd, "Invalid channel name : must start by #/&\n", 42, 0);
+            send(client_fd, "Invalid channel name : must start by #/&\r\n", 43, 0);
         else if (is_channelexist(chans[i]) == false)
         {
             // NO third param 
@@ -287,7 +289,7 @@ bool server::engrafiete_sto_kanali(std::vector<std::string> vec, int client_fd)
         else if (is_channelexist(chans[i]) == true && chan_map[chans[i]].secure == false)
         {
             if (chan_map[chans[i]].is_inviteonly)
-                send(client_fd, "this channel is invite only\n", 29, 0);
+                send(client_fd, "this channel is invite only\r\n", 30, 0);
             else if (chan_map[chans[i]].is_inviteonly == false && chan_map[chans[i]].is_limited)
             {
                 if (chan_map[chans[i]].nbr_member < chan_map[chans[i]].user_limite)
@@ -296,7 +298,7 @@ bool server::engrafiete_sto_kanali(std::vector<std::string> vec, int client_fd)
                     chan_map[chans[i]].nbr_member++;
                 }
                 else
-                    send(client_fd, "This channel reach max of members\n", 34, 0);
+                    send(client_fd, "This channel reach max of members\r\n", 35, 0);
             }
             else if (chan_map[chans[i]].is_inviteonly == false && chan_map[chans[i]].is_limited == false)
             {
@@ -310,7 +312,7 @@ bool server::engrafiete_sto_kanali(std::vector<std::string> vec, int client_fd)
             if (!key.empty() && !key[i].empty())
             {
                 if (chan_map[chans[i]].is_inviteonly)
-                    send(client_fd, "this channel is invite only\n", 29, 0);
+                    send(client_fd, "this channel is invite only\r\n", 30, 0);
                 else if (chan_map[chans[i]].is_inviteonly == false && chan_map[chans[i]].is_limited == true)
                 {
                     if (key[i] == chan_map[chans[i]].chan_password)
@@ -321,10 +323,10 @@ bool server::engrafiete_sto_kanali(std::vector<std::string> vec, int client_fd)
                             chan_map[chans[i]].nbr_member++;
                         }
                         else
-                            send(client_fd, "This channel reach max of members\n", 35, 0);
+                            send(client_fd, "This channel reach max of members\r\n", 36, 0);
                     }
                     else
-                        send(client_fd, "Invalid Key\n", 13, 0);
+                        send(client_fd, "Invalid Key\r\n", 14, 0);
                 }
                 else
                 {
@@ -334,11 +336,11 @@ bool server::engrafiete_sto_kanali(std::vector<std::string> vec, int client_fd)
                         chan_map[chans[i]].nbr_member++;
                     }
                     else
-                        send(client_fd, "Invalid Key\n", 13, 0);
+                        send(client_fd, "Invalid Key\r\n", 14, 0);
                 }
             }
             else
-                send(client_fd, "Need Key to join the channel\n", 30, 0);
+                send(client_fd, "Need Key to join the channel\r\n", 31, 0);
         }
     }
     return true;
@@ -348,7 +350,7 @@ bool server::invite_sto_kanali(std::vector<std::string> vec, int client_fd)
 {
     int cfd = get_clientfd(vec[1]);
     if (cfd < 0)
-        send(client_fd, "Client doesnt exist\n", 21, 0);
+        send(client_fd, "Client doesnt exist\r\n", 22, 0);
     else if (is_channelexist(vec[2]) == false && cfd > 0)
     {
         if (channels.add_channel(vec[2], cl.at(cfd), false) == true)
@@ -358,12 +360,12 @@ bool server::invite_sto_kanali(std::vector<std::string> vec, int client_fd)
     {
         if (chan_map[vec[2]].is_member(client_fd, vec[2]) == false)
         {
-            send(client_fd, "You are not a member", 21, 0);
+            send(client_fd, "You are not a member\r\n", 22, 0);
             return false;
         }
         else if (chan_map[vec[2]].is_member(cfd, vec[2]) == true)
         {
-            send(client_fd, "the client you tried to invite is already a member\n", 52, 0);
+            send(client_fd, "the client you tried to invite is already a member\r\n", 53, 0);
             return false;
         }
         // it's not an invite only channel every member can invite others
@@ -373,17 +375,17 @@ bool server::invite_sto_kanali(std::vector<std::string> vec, int client_fd)
             {
                 chan_map[vec[2]].add_member(cl.at(cfd), vec[2]);
                 chan_map[vec[2]].nbr_member++;
-                send(cfd, "You are now a member ... \n", 27, 0);
+                send(cfd, "You are now a member ... \r\n", 28, 0);
             }
             else if (chan_map[vec[2]].is_limited == true)
             {
                 if (chan_map[vec[2]].user_limite == chan_map[vec[2]].nbr_member)
-                    send(client_fd, "Channel reach max of members\n", 30, 0);
+                    send(client_fd, "Channel reach max of members\r\n", 31, 0);
                 else
                 {
                     chan_map[vec[2]].add_member(cl.at(cfd), vec[2]);
                     chan_map[vec[2]].nbr_member++;
-                    send(cfd, "You are now a member ... \n", 27, 0);
+                    send(cfd, "You are now a member ... \r\n", 28, 0);
                 }
             }
         }
@@ -394,23 +396,23 @@ bool server::invite_sto_kanali(std::vector<std::string> vec, int client_fd)
             {
                 chan_map[vec[2]].add_member(cl.at(cfd), vec[2]);
                 chan_map[vec[2]].nbr_member++;
-                send(cfd, "You are now a member ... \n", 27, 0);
+                send(cfd, "You are now a member ... \r\n", 28, 0);
             }
             else if (chan_map[vec[2]].is_limited == true)
             {
                 if (chan_map[vec[2]].user_limite == chan_map[vec[2]].nbr_member)
-                    send(client_fd, "Channel reach max of members\n", 30, 0);
+                    send(client_fd, "Channel reach max of members\r\n", 31, 0);
                 else
                 {
                     chan_map[vec[2]].add_member(cl.at(cfd), vec[2]);
                     chan_map[vec[2]].nbr_member++;
-                    send(cfd, "You are now a member ... \n", 27, 0);
+                    send(cfd, "You are now a member ... \r\n", 28, 0);
                 }
             }
         }
         else
         {
-            send(client_fd, "You dont have privilige to invite other member\n", 48, 0);
+            send(client_fd, "You dont have privilige to invite other member\r\n", 49, 0);
             return false;
         }
     }
@@ -430,23 +432,24 @@ bool server::cmd_handler(char *buff, int sfd, int client_fd)
         token = trim(token);
         vec.push_back(token);
     }
-    if (vec[0] == "PASS")
+    if (!vec.empty() && vec[0] == "PASS")
     {
         if (vec.size() != 2)
-        {
-            send(client_fd, "Need more params : Password\n", 29, 0);
+          {
+            std::cout << "eeeeooopds\n";
+            send(client_fd, "Need more params : Password\r\n", strlen("Need more params : Password\r\n"), 0);
             return false;
         }
         // if the client already auth and ALREADYREGISTRED then trow => ERR_ALREADYREGISTRED
         int flag = authenticateClient(vec, client_fd);
         if (flag == 2)
-            send(client_fd, "Invalid Password:...\n", 22, 0);
+            send(client_fd, "Invalid Password:...\r\n", 23, 0);
         else if (flag == 0)
-            send(client_fd, "Authentificated:...\n", 21, 0);
+            send(client_fd, "Authentificated:...\r\n", 22, 0);
     }
     else if (vec.size() >= 2)
     {
-        // check params => NICK <nickname>
+        // check params => NICK <nickname> 
         if (vec[0] == "NICK" && auth == true)
             nickname_cmd(vec, client_fd);
         // check params => USER <username> :<realname ..>
@@ -475,25 +478,25 @@ bool server::cmd_handler(char *buff, int sfd, int client_fd)
                     int cfd = get_clientfd(vec[2]);
                     if (cfd < 0)
                     {
-                        send(client_fd, "Client doesnt exist\n", 21, 0);
+                        send(client_fd, "Client doesnt exist\r\n", 22, 0);
                         return false;
                     }
                     else if (chan_map[vec[1]].is_member(cfd, vec[1]) == false)
                     {
-                        send(client_fd, "USer not a member of the channel\n", 34, 0);
+                        send(client_fd, "USer not a member of the channel\r\n", 35, 0);
                         return false;
                     }
                     else if (chan_map[vec[1]].is_member(cfd, vec[1]) == true)
                     {
                         chan_map[vec[1]].remove_member(cl.at(cfd), vec[1]);
-                        send(cfd, "you've been kicked from the channel\n", 37, 0);
+                        send(cfd, "you've been kicked from the channel\r\n", 38, 0);
                     }
                 }
                 else
-                    send(client_fd, "You Dont have privilige\n", 24, 0);
+                    send(client_fd, "You Dont have privilige\r\n", 25, 0);
             }
             else
-                send(client_fd, "Channel deosnt exist\n", 22, 0);
+                send(client_fd, "Channel deosnt exist\r\n", 23, 0);
         }
 
         //topic #chan_name topic / TOPIC #chan_name => size of vec = 3 max
@@ -506,7 +509,7 @@ bool server::cmd_handler(char *buff, int sfd, int client_fd)
                 {
                     if (chan_map[vec[1]].is_member(client_fd, vec[1]) ==  false)
                     {
-                        send(client_fd, "You are not a member\n", 22, 0);
+                        send(client_fd, "You are not a member\r\n", 23, 0);
                         return false;
                     }
                     chan_map[vec[1]].change_topic(client_fd, vec);
@@ -514,12 +517,12 @@ bool server::cmd_handler(char *buff, int sfd, int client_fd)
                 else if (is_operator(vec[1], client_fd) == true)
                     chan_map[vec[1]].change_topic(client_fd, vec);
                 else if(is_operator(vec[1], client_fd) == false && chan_map[vec[1]].is_topicated == false)
-                    send(client_fd, "You Dont have privilige\n", 24, 0);
+                    send(client_fd, "You Dont have privilige\r\n", 25, 0);
                 else
-                    send(client_fd, "You are not a member\n", 22, 0);
+                    send(client_fd, "You are not a member\r\n", 23, 0);
             }
             else 
-                send(client_fd, "Channel deosnt exist\n", 22, 0);
+                send(client_fd, "Channel deosnt exist\r\n", 23, 0);
         }
         // handle operator cmds MODE #chan-name +-it / MODE #chan-name +-lok one-param
         if (vec[0] == "MODE" && auth == true)
@@ -535,11 +538,11 @@ bool server::cmd_handler(char *buff, int sfd, int client_fd)
                         {
                             int cfd = get_clientfd(vec[3]);
                             if (chan_map[vec[1]].is_member(cfd, vec[1]) == true){
-                                send(cfd, "You are now an operator\n", 25, 0);
+                                send(cfd, "You are now an operator\r\n", 26, 0);
                                 chan_map[vec[1]]._operators_fd.push_back(cfd);
                             }
                             else if (cfd < 0 || chan_map[vec[1]].is_member(cfd, vec[1]) == false)
-                                send(client_fd, "User doesn't exist or not in channel\n", 38, 0);
+                                send(client_fd, "User doesn't exist or not in channel\r\n", 39, 0);
                         }
                         else if (vec[2] == "+k")
                         {
@@ -551,7 +554,7 @@ bool server::cmd_handler(char *buff, int sfd, int client_fd)
                             chan_map[vec[1]].user_limite = atoi(vec[3].c_str());
                         }
                         else{
-                            std::cout << "Here\n";
+                            std::cout << "Here\r\n";
                             chan_map[vec[1]].add_mode(client_fd, vec);}
                     }
                     // else if (*(vec[2].begin()) == '-'){
@@ -560,14 +563,14 @@ bool server::cmd_handler(char *buff, int sfd, int client_fd)
                 }
             }
             else
-                send(client_fd, "Channel deosnt exist\n", 22, 0);
+                send(client_fd, "Channel deosnt exist\r\n", 23, 0);
         }
         // if (vec[0] == "INVITE" && auth == true){
         //     if (is_clientinchannel(client_fd, vec) == true){
         //     }
         // }
         else if (auth == false)
-            send(client_fd, "Need authentification to continue:...\n", 39, 0);
+            send(client_fd, "Need authentification to continue:...\r\n", 40, 0);
     }
     return true;
 }
@@ -584,7 +587,7 @@ int server::get_clientfd(std::string name)
 }
 
 bool server::is_channelexist(std::string name){
-    // std::cout << "printing map [" << chan_map << "]\n";
+    // std::cout << "printing map [" << chan_map << "]\r\n";
     std::map<std::string, channel>::iterator mit;
     for (mit = chan_map.begin(); mit != chan_map.end(); ++mit){
         if (mit->first == name)
