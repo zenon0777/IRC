@@ -491,6 +491,9 @@ bool server::cmd_handler(char *buff, int sfd, int client_fd)
                         chan_map[vec[1]].remove_member(cl.at(cfd), vec[1]);
                         send(cfd, "you've been kicked from the channel\r\n", 38, 0);
                     }
+                    else if (is_operator(vec[1], cfd) == true)
+                        send(client_fd, "The client you tried to kiked off is an operator: cant remove him\r\n", strlen("The client you tried \
+                        to kiked off is an operator: cant remove him\r\n"), 0);
                 }
                 else
                     send(client_fd, "You Dont have privilige\r\n", 25, 0);
