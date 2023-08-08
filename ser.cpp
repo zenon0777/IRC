@@ -1,4 +1,14 @@
 #include "ser.hpp"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <poll.h>
 
 int server::server_socket()
 {
@@ -43,6 +53,13 @@ std::string trim(const std::string &str)
     return str.substr(first, last - first + 1);
 }
 
+void *get_in_addr(struct sockaddr *sa) {
+    if (sa->sa_family == AF_INET) {
+        return &(((struct sockaddr_in*)sa)->sin_addr);
+    }
+
+    return &(((struct sockaddr_in6*)sa)->sin6_addr);
+}
 int server::server_setup()
 {
     struct sockaddr_storage client;
@@ -53,6 +70,7 @@ int server::server_setup()
     //get socket fd
     set_sfd(server_socket());
     pfds.push_back((struct pollfd){sfd, POLLIN, nfds});
+    char remoteIP[INET6_ADDRSTRLEN];
     while (true)
     {
         int poll_res = poll(pfds.data(), pfds.size(), -1);
@@ -68,8 +86,16 @@ int server::server_setup()
                 perror("eroor");
             pfds.push_back((struct pollfd){cfd, POLLIN, nfds++});
         }
-        for (int i = 1; i < pfds.size(); ++i)
+        for (int i = 0; i < pfds.size(); ++i)
         {
+            int client_family = client.ss_family;
+            const char *host = inet_ntop(client_family, get_in_addr((struct sockaddr*)&client), remoteIP, INET6_ADDRSTRLEN);
+            char client_hostname[NI_MAXHOST];
+            int result = getnameinfo((struct sockaddr*)&client, addr_len, client_hostname, NI_MAXHOST, NULL, 0, 0);
+            if (result != 0) {
+                fprintf(stderr, "getnameinfo: %s\n", gai_strerror(result));
+                strncpy(client_hostname, remoteIP, NI_MAXHOST);
+            }
             if (pfds[i].revents & POLLIN)
             {
                 bzero(buff, sizeof(buff));
@@ -91,6 +117,7 @@ int server::server_setup()
                 {
                     cl.insert(std::pair<int,Client>(pfds[i].fd, clients));
                     cl.at(pfds[i].fd).set_cfd(pfds[i].fd);
+                    cl.at(pfds[i].fd).set_host(client_hostname);
                     cmd_handler(buff, sfd, pfds[i].fd);
                     continue;
                 }
@@ -165,8 +192,12 @@ bool server::nickname_cmd(std::vector<std::string> &vec, int c_fd)
         it->second.set_nickname(trim(vec[1]));
     }
     else
-        send(c_fd, "ERROR nickname already in use\r\n", 30, 0);
-    //handle identical messg error
+    {
+        std::string err = ":" + cl.at(c_fd).get_host() + " 433 " + cl.at(c_fd).get_nickname();
+        err += " :Nickname is already in use\r\n";
+        const char *buff = err.c_str();
+        send(c_fd, buff, strlen(buff), 0);
+    }
     return true;
 }
 
@@ -175,9 +206,11 @@ bool server::user_cmd(std::vector<std::string>vec, int c_fd){
     std::string r_name;
     if (vec.size() < 3 || *(vec[2].begin()) != ':')
         return false;
-    else{
+    else
+    {
         r_name = vec[2].substr(1);
         cl.at(c_fd).set_username(vec[1], r_name);
+        std::cout << cl.at(c_fd).get_username() << std::endl;
         return true;
     }
     return false;
@@ -190,11 +223,12 @@ channel server::get_channel(std::string name){
 }
 
 bool server::send_messg(std::string mssg, int client_fd){
-    size_t pos = mssg.find(':');
+    // size_t pos = mssg.find(':');
     const char *buff;
-    mssg = mssg.substr(pos);
+    // mssg = mssg.substr(pos);
+    mssg += "\r\n";
     buff = mssg.c_str();
-    if(send(client_fd, buff, sizeof(buff), 0) < 0)
+    if(send(client_fd, buff, strlen(buff), 0) < 0)
         return false;
     return true;
 }
@@ -208,11 +242,32 @@ bool server::handle_recievers(std::vector<std::string> vec, int c_fd){
         nicks.push_back(token);}
     int cfd = -1;
     std::vector<std::string>::const_iterator it;
-    for(it = nicks.begin(); it!= nicks.end(); it++){
-        cfd = get_clientfd(*it);
-        std::cout << cfd << std::endl;
-        if (cfd > 0)
-            send_messg(vec[2], cfd);
+    for(int i = 0; i < nicks.size(); i++)
+    {
+        if (*nicks[i].begin() == '#')
+        {
+            std::vector<int>::iterator vit;
+            std::cout << "size  :::  " << chan_map[nicks[i]].clients_fd.size() << std::endl;
+            for(int j = 0; j < chan_map[nicks[i]].clients_fd.size(); j++)
+            {
+                std::cout << chan_map[nicks[i]].clients_fd[j] << std::endl;
+                if (chan_map[nicks[i]].clients_fd[j] > 0)
+                    send_messg(vec[2], chan_map[nicks[i]].clients_fd[j]);
+                else
+                {
+                    std::string mssg = "401 ERR_NOSUCHNICK " + nicks[i] + " :No such nick/channel\r\n";
+                    const char *buff = mssg.c_str();
+                    send(c_fd, buff, strlen(buff), 0);
+                }
+            }
+        }
+        else
+        {
+            cfd = get_clientfd(nicks[i]);
+            std::cout << cfd << std::endl;
+            if (cfd > 0)
+                send_messg(vec[2], cfd);
+        }
     }
     return true;
 }
@@ -245,9 +300,12 @@ std::vector<std::string> splite(std::string str, char delim){
 
 bool server::engrafiete_sto_kanali(std::vector<std::string> vec, int client_fd)
 {
-    if (vec.size() > 3)
+    if (vec.size() > 3 || vec.size() < 2 || (vec.size() == 2 && vec[1] == "#"))
     {
-        send(client_fd, "Too much params\r\n", 18, 0);
+        std::string err = ":" + cl.at(client_fd).get_host() + " 461 " + cl.at(client_fd).get_nickname();
+        err += " :Not enough parameters\r\n";
+        const char *buff = err.c_str();
+        send(client_fd, buff, strlen(buff), 0);
         return false;
     }        
     // check if user is already in the channel or not
@@ -432,37 +490,61 @@ bool server::cmd_handler(char *buff, int sfd, int client_fd)
         token = trim(token);
         vec.push_back(token);
     }
+    std::cout << cmd << std::endl;
     if (!vec.empty() && vec[0] == "PASS")
     {
-        if (vec.size() != 2)
-          {
-            std::cout << "eeeeooopds\n";
-            send(client_fd, "Need more params : Password\r\n", strlen("Need more params : Password\r\n"), 0);
+        if (vec.size() < 2)
+        {
+            std::string err = ":" + cl.at(client_fd).get_host() + " 461 " + cl.at(client_fd).get_nickname();
+            err += " :Not enough parameters\r\n";
+            const char *buff = err.c_str();
+            send(client_fd, buff, strlen(buff), 0);
             return false;
         }
         // if the client already auth and ALREADYREGISTRED then trow => ERR_ALREADYREGISTRED
         int flag = authenticateClient(vec, client_fd);
         if (flag == 2)
-            send(client_fd, "Invalid Password:...\r\n", 23, 0);
-        else if (flag == 0)
-            send(client_fd, "Authentificated:...\r\n", 22, 0);
+        {
+            std::string err = ":" + cl.at(client_fd).get_host() + " 464 " + cl.at(client_fd).get_nickname();
+            err += " :password incorrect\r\n";
+            const char *buff = err.c_str();
+            send(client_fd, buff, strlen(buff), 0);
+        }
     }
-    else if (vec.size() >= 2)
+    else if (vec.size() >= 1)
     {
         // check params => NICK <nickname> 
-        if (vec[0] == "NICK" && auth == true)
-            nickname_cmd(vec, client_fd);
+        if (vec[0] == "NICK")
+        {
+            if (vec.size() == 1 && vec[0] == "NICK" || (vec[1] == ":" && vec[0] == "NICK"))
+            {
+                std::string err = ":" + cl.at(client_fd).get_host() + " 431 " + cl.at(client_fd).get_nickname();
+                err += " :No nickname given\r\n";
+                const char *buff = err.c_str();
+                send(client_fd, buff, strlen(buff), 0);
+            }
+            else if (vec[0] == "NICK" && auth == true)
+            {
+                std::cout << "nick\n";
+                nickname_cmd(vec, client_fd);
+            }
+        }
         // check params => USER <username> :<realname ..>
-        else if (vec[0] == "USER" && auth == true)
-            user_cmd(vec, client_fd);
-        
+        if (vec[0] == "USER" && auth == true)
+        {
+            std::cout << "user\n";
+            user_cmd(vec, client_fd);   
+        }
         else if (vec[0] == "PRIVMSG" && auth == true)
             handle_recievers(vec, client_fd);
         
         else if (vec[0] == "JOIN" && auth== true)
         {
-            if (engrafiete_sto_kanali(vec, client_fd) == false)
+            std::cout << "join\n";
+            if (engrafiete_sto_kanali(vec, client_fd) == false){
+                std::cout << "error join\n";
                 return false;
+            }
         }
         // INVITE <nickname> <#channel_name> => size of vec = 3 exact
 

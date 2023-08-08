@@ -25,12 +25,18 @@ private:
     std::string real_name;
     bool        is_authentifcated;
     int         c_fd;
+    std::string _host;
+    std::string client_ip;
     char *mssg;
 public:
     Client();
     Client(const Client &obj);
     // channel channels;
     void set_authent(bool isauthent);
+    void set_host(const char *host);
+    std::string get_host() const;
+    void set_clientip(char *remoteip);
+    std::string get_clientip() const;
     void set_nickname(std::string nick);
     void set_username(std::string user, std::string r_name);
     std::string get_username() const;

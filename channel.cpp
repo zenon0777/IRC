@@ -41,6 +41,11 @@ bool channel::is_member(int c_fd, std::string chan_name){
     return false;
 }
 
+/*:lop!~zen@5c8c-aff4-7127-3c3-1c20.230.197.ip JOIN :#there
+:punch.wa.us.dal.net 353 lop = #there :@lop 
+:punch.wa.us.dal.net 366 lop #there :End of /NAMES list.
+:lk!~zeno@5c8c-aff4-7127-3c3-1c20.230.197.ip JOIN :#there
+*/
 void    channel::add_member(Client &cl, std::string name){
     std::map<std::string, std::vector<int> >::iterator mit;
     std::vector<int>::const_iterator vit;
@@ -50,19 +55,12 @@ void    channel::add_member(Client &cl, std::string name){
         if (mit->first == name)
             mit->second.push_back(cl.get_clientfd());
     }
+    clients_fd.push_back(cl.get_clientfd());
     this->user_nickname[cl.get_clientfd()] = cl.get_nickname();
-    std::map<int, std::string>::const_iterator it;
-    // const char *buff(mssg.c_str());
-    // send(cl.get_clientfd(), buff, sizeof(buff), 0);
-    send(cl.get_clientfd(), "Welcome this is a list of channel member :: \r\n", 41, 0);
-    for (it=user_nickname.begin(); it != user_nickname.end(); ++it)
-    {
-        if (it->first != cl.get_clientfd())
-        {
-            const char *user = it->second.c_str();
-            send(cl.get_clientfd(), user, sizeof(user), 0);
-        }
-    }
+    std::string rpl = ":" + cl.get_nickname() + "!~" + cl.get_username() + "@" + cl.get_clientip() + "ip" + "JOIN :" + name;
+    rpl += "\r\n";
+    const char *buff = rpl.c_str();
+    send(cl.get_clientfd(), buff, strlen(buff), 0);
 }
 
 bool channel::is_operator(std::string chan_name, int client_fd){
@@ -175,7 +173,11 @@ bool channel::add_channel(std::string chan_name,Client &cl, bool secure)
         this->chan_members.insert(std::pair<std::string,std::vector<int> >(chan_name, this->clients_fd));
         //handle user operator and send all mssg and list cmds to execute
         this->_operators_fd.push_back(cl.get_clientfd());
-        // send(cl.get_clientfd(), cmd, sizeof(cmd), 0);
+        std::cout << cl.get_clientip() << std::endl;
+        std::string rpl = ":" + cl.get_nickname() + "!~" + cl.get_username() + "@" + cl.get_clientip() + ".ip " + "JOIN :" + chan_name;
+        rpl += "\r\n";
+        const char *buff = rpl.c_str();
+        send(cl.get_clientfd(), buff, strlen(buff), 0);
         return true;
     }
     return false;
