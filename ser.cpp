@@ -118,6 +118,7 @@ int server::server_setup()
                     cl.insert(std::pair<int,Client>(pfds[i].fd, clients));
                     cl.at(pfds[i].fd).set_cfd(pfds[i].fd);
                     cl.at(pfds[i].fd).set_host(client_hostname);
+                    // cl.at(pfds[i].fd).set_clientip(ip_address);
                     cmd_handler(buff, sfd, pfds[i].fd);
                     continue;
                 }
@@ -298,112 +299,6 @@ std::vector<std::string> splite(std::string str, char delim){
     return vec;
 }
 
-bool server::engrafiete_sto_kanali(std::vector<std::string> vec, int client_fd)
-{
-    if (vec.size() > 3 || vec.size() < 2 || (vec.size() == 2 && vec[1] == "#"))
-    {
-        std::string err = ":" + cl.at(client_fd).get_host() + " 461 " + cl.at(client_fd).get_nickname();
-        err += " :Not enough parameters\r\n";
-        const char *buff = err.c_str();
-        send(client_fd, buff, strlen(buff), 0);
-        return false;
-    }        
-    // check if user is already in the channel or not
-    // list the channel member nickname to new member recently joined
-    // send channel topic 
-    // list to the operator all commands he can execute
-    std::vector<std::string> chans = splite(vec[1], ',');
-    std::vector<std::string> key;
-    if (vec.size() > 2 && !vec[2].empty())
-    {
-        key = splite(vec[2], ',');
-    }
-    for (int i = 0; i < chans.size(); i++)
-    {
-        if (*chans[i].begin() != '#' && *chans[i].begin() != '&')
-            send(client_fd, "Invalid channel name : must start by #/&\r\n", 43, 0);
-        else if (is_channelexist(chans[i]) == false)
-        {
-            // NO third param 
-            if (key.empty())
-            {
-                if (channels.add_channel(chans[i], cl.at(client_fd), false) == true)
-                    chan_map[chans[i]] = channels;
-            }
-            // there is third param and key seted for the channel
-            else if (!key.empty() && !key[i].empty())
-            {
-                if (channels.add_channel(chans[i], cl.at(client_fd), true) == true)
-                    chan_map[chans[i]] = channels;
-                chan_map[chans[i]].secure = true;
-                chan_map[chans[i]].chan_password = key[i];
-            }
-            // there is third param and no key to set for this channel
-            else if ((!key.empty() && key[i].empty()) || key.empty())
-                if (channels.add_channel(chans[i], cl.at(client_fd), false) == true)
-                    chan_map[chans[i]] = channels;
-        }
-     // check security of channel
-        else if (is_channelexist(chans[i]) == true && chan_map[chans[i]].secure == false)
-        {
-            if (chan_map[chans[i]].is_inviteonly)
-                send(client_fd, "this channel is invite only\r\n", 30, 0);
-            else if (chan_map[chans[i]].is_inviteonly == false && chan_map[chans[i]].is_limited)
-            {
-                if (chan_map[chans[i]].nbr_member < chan_map[chans[i]].user_limite)
-                {
-                    chan_map[chans[i]].add_member(cl.at(client_fd), chans[i]);
-                    chan_map[chans[i]].nbr_member++;
-                }
-                else
-                    send(client_fd, "This channel reach max of members\r\n", 35, 0);
-            }
-            else if (chan_map[chans[i]].is_inviteonly == false && chan_map[chans[i]].is_limited == false)
-            {
-                chan_map[chans[i]].add_member(cl.at(client_fd), chans[i]);
-                chan_map[chans[i]].nbr_member++;
-            }
-        }
-        
-        else if (is_channelexist(chans[i]) == true && chan_map[chans[i]].secure == true)
-        {
-            if (!key.empty() && !key[i].empty())
-            {
-                if (chan_map[chans[i]].is_inviteonly)
-                    send(client_fd, "this channel is invite only\r\n", 30, 0);
-                else if (chan_map[chans[i]].is_inviteonly == false && chan_map[chans[i]].is_limited == true)
-                {
-                    if (key[i] == chan_map[chans[i]].chan_password)
-                    {
-                        if ((chan_map[chans[i]].user_limite > chan_map[chans[i]].nbr_member) || (chan_map[chans[i]].user_limite == 0))
-                        {
-                            chan_map[chans[i]].add_member(cl.at(client_fd), chans[i]);
-                            chan_map[chans[i]].nbr_member++;
-                        }
-                        else
-                            send(client_fd, "This channel reach max of members\r\n", 36, 0);
-                    }
-                    else
-                        send(client_fd, "Invalid Key\r\n", 14, 0);
-                }
-                else
-                {
-                    if (key[i] == chan_map[chans[i]].chan_password)
-                    {
-                        chan_map[chans[i]].add_member(cl.at(client_fd), chans[i]);
-                        chan_map[chans[i]].nbr_member++;
-                    }
-                    else
-                        send(client_fd, "Invalid Key\r\n", 14, 0);
-                }
-            }
-            else
-                send(client_fd, "Need Key to join the channel\r\n", 31, 0);
-        }
-    }
-    return true;
-}
-
 bool server::invite_sto_kanali(std::vector<std::string> vec, int client_fd)
 {
     int cfd = get_clientfd(vec[1]);
@@ -470,12 +365,52 @@ bool server::invite_sto_kanali(std::vector<std::string> vec, int client_fd)
         }
         else
         {
-            send(client_fd, "You dont have privilige to invite other member\r\n", 49, 0);
+            std::string err = ":" + cl[client_fd].get_host() + " 482 " + cl[client_fd].get_nickname();
+            err += " :You're not channel operator\r\n";
+            const char *buff = err.c_str();
+            send(client_fd, buff, strlen(buff), 0);
             return false;
         }
     }
     return true;
 }
+
+//change topic
+
+
+
+bool server::change_topic(int cfd, std::vector<std::string> vec)
+{
+    if (vec.size() == 2 && chan_map[vec[1]].is_topic == false)
+    {
+        std::string err = ":" + cl[cfd].get_host() + " 331 " + cl[cfd].get_nickname();
+        err += " :No topic is set\r\n";
+        const char *buff = err.c_str();
+        send(cfd, buff, strlen(buff), 0);
+        return false;
+    }
+    if (vec.size() == 2 && chan_map[vec[1]].is_topic == true)
+    {
+        std::string reply = ":" + cl[cfd].get_host() + " 332 " + cl[cfd].get_nickname();
+        reply += " " + vec[1] + " :" + chan_map[vec[1]].topic + "\r\n";
+        const char *buff = reply.c_str();
+        send(cfd, buff, strlen(buff), 0);
+    }
+    else if (vec.size() == 3)
+    {
+        chan_map[vec[1]].is_topic = true;
+        chan_map[vec[1]].topic = vec[2];
+        std::string reply = ":" + cl[cfd].get_host() + " 332 " + cl[cfd].get_nickname();
+        reply += " " + vec[1] + " :" + chan_map[vec[1]].topic + "\r\n";
+        const char *buff = reply.c_str();
+        send(cfd, buff, strlen(buff), 0);
+    }
+    else if (vec.size() == 1)
+        send(cfd, "ERR_Parameter : ...\n",20, 0);
+    return true;
+}
+
+
 
 bool server::cmd_handler(char *buff, int sfd, int client_fd)
 {
@@ -578,36 +513,68 @@ bool server::cmd_handler(char *buff, int sfd, int client_fd)
                         to kiked off is an operator: cant remove him\r\n"), 0);
                 }
                 else
-                    send(client_fd, "You Dont have privilige\r\n", 25, 0);
+                {
+                    std::string err = ":" + cl[client_fd].get_host() + " 482 " + cl[client_fd].get_nickname();
+                    err += " :You're not channel operator\r\n";
+                    const char *buff = err.c_str();
+                    send(client_fd, buff, strlen(buff), 0);
+                }
             }
             else
-                send(client_fd, "Channel deosnt exist\r\n", 23, 0);
+            {
+                std::string err = ":" + cl[client_fd].get_host() + " 403 " + cl[client_fd].get_nickname();
+                err += " :No such channel\r\n";
+                const char *buff = err.c_str();
+                send(client_fd, buff, strlen(buff), 0);
+            }
         }
 
         //topic #chan_name topic / TOPIC #chan_name => size of vec = 3 max
         else if (vec[0] == "TOPIC" && auth == true)
         {
+            if (vec.size() < 2)
+            {
+                std::string err = ":" + cl.at(client_fd).get_host() + " 461 " + cl.at(client_fd).get_nickname();
+                err += " :Not enough parameters\r\n";
+                const char *buff = err.c_str();
+                send(client_fd, buff, strlen(buff), 0);
+            }
             if (is_channelexist(vec[1]) == true)
             {
-                // if TOPIC #chan_name list the topic even if its not an operator
+                if (chan_map[vec[1]].is_member(client_fd, vec[1]) ==  false)
+                {
+                    std::string err = ":" + cl[client_fd].get_host() + " 442 " + cl[client_fd].get_nickname();
+                    err += " :You're not on that channel\r\n\r\n";
+                    const char *buff = err.c_str();
+                    send(client_fd, buff, strlen(buff), 0);
+                    return false;
+                }
                 if (chan_map[vec[1]].is_topicated == true)
                 {
-                    if (chan_map[vec[1]].is_member(client_fd, vec[1]) ==  false)
-                    {
-                        send(client_fd, "You are not a member\r\n", 23, 0);
+                    if (change_topic(client_fd, vec) == false)
                         return false;
-                    }
-                    chan_map[vec[1]].change_topic(client_fd, vec);
                 }
                 else if (is_operator(vec[1], client_fd) == true)
-                    chan_map[vec[1]].change_topic(client_fd, vec);
+                {
+                    if (change_topic(client_fd, vec) == false)
+                        return false;
+                }
                 else if(is_operator(vec[1], client_fd) == false && chan_map[vec[1]].is_topicated == false)
-                    send(client_fd, "You Dont have privilige\r\n", 25, 0);
-                else
-                    send(client_fd, "You are not a member\r\n", 23, 0);
+                {
+                    std::string err = ":" + cl[client_fd].get_host() + " 482 " + cl[client_fd].get_nickname();
+                    err += " :You're not channel operator\r\n";
+                    const char *buff = err.c_str();
+                    send(client_fd, buff, strlen(buff), 0);
+                    return false;
+                }
             }
-            else 
-                send(client_fd, "Channel deosnt exist\r\n", 23, 0);
+            else
+            {
+                std::string err = ":" + cl[client_fd].get_host() + " 403 " + cl[client_fd].get_nickname();
+                err += " :No such channel\r\n";
+                const char *buff = err.c_str();
+                send(client_fd, buff, strlen(buff), 0);
+            }
         }
         // handle operator cmds MODE #chan-name +-it / MODE #chan-name +-lok one-param
         if (vec[0] == "MODE" && auth == true)

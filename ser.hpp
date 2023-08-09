@@ -39,6 +39,7 @@ public:
     int server_socket();
     int authenticateClient(std::vector<std::string> c, int listener);
     bool nickname_cmd(std::vector<std::string> &vec, int c_fd);
+    bool change_topic(int, std::vector<std::string>);
     bool user_cmd(std::vector<std::string>vec, int c_fd);
     bool is_identical(std::string nick, int cfd);
     bool is_channelexist(std::string name);
@@ -68,5 +69,5 @@ public:
 //     }
 //     return o;
 // }
-
+std::vector<std::string> splite(std::string str, char delim);
 #endif

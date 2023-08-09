@@ -45,7 +45,14 @@ bool channel::is_member(int c_fd, std::string chan_name){
 :punch.wa.us.dal.net 353 lop = #there :@lop 
 :punch.wa.us.dal.net 366 lop #there :End of /NAMES list.
 :lk!~zeno@5c8c-aff4-7127-3c3-1c20.230.197.ip JOIN :#there
+
 */
+
+std::string channel::get_chan_member()
+{
+    std::map<
+}
+
 void    channel::add_member(Client &cl, std::string name){
     std::map<std::string, std::vector<int> >::iterator mit;
     std::vector<int>::const_iterator vit;
@@ -57,7 +64,9 @@ void    channel::add_member(Client &cl, std::string name){
     }
     clients_fd.push_back(cl.get_clientfd());
     this->user_nickname[cl.get_clientfd()] = cl.get_nickname();
-    std::string rpl = ":" + cl.get_nickname() + "!~" + cl.get_username() + "@" + cl.get_clientip() + "ip" + "JOIN :" + name;
+    std::string rpl = ":" + cl.get_nickname() + "!~" + cl.get_username() + "@" + cl.get_clientip() + ".ip JOIN :"+ name + "\r\n";
+    rpl += ":" + cl.get_host() + " 353 " + cl.get_nickname() + " @ " + name + " :" + cl.get_nickname() + this->get_chan_member() + " @" + get_chan_operator() + "\r\n"; 
+    rpl += ":" + cl.get_host() + " 366 " + cl.get_nickname() + " " + name + " :End of /NAMES list.";
     rpl += "\r\n";
     const char *buff = rpl.c_str();
     send(cl.get_clientfd(), buff, strlen(buff), 0);
@@ -113,27 +122,6 @@ bool channel::add_mode(int cfd, std::vector<std::string> vec){
     return true;
 }
 
-bool channel::change_topic(int cfd, std::vector<std::string> vec)
-{
-    const char *buff;
-    if (vec.size() == 2 && this->is_topic == false)
-        send(cfd, "NO topic set Yet : you can set it as u r an operator\n", 54, 0);
-    else if (vec.size() == 2 && this->is_topic == true)
-    {
-        this->topic += '\n';
-        buff = this->topic.c_str();
-        send(cfd, buff, sizeof(buff), 0);
-    }
-    else if (vec.size() == 3)
-    {
-        this->is_topic = true;
-        this->topic = vec[2];
-    }
-    else if (vec.size() == 1)
-        send(cfd, "ERR_Parameter : ...\n",20, 0);
-    return true;
-}
-
 std::vector<int> channel::get_operators(void) const{
     return this->_operators_fd;
 }
@@ -174,7 +162,7 @@ bool channel::add_channel(std::string chan_name,Client &cl, bool secure)
         //handle user operator and send all mssg and list cmds to execute
         this->_operators_fd.push_back(cl.get_clientfd());
         std::cout << cl.get_clientip() << std::endl;
-        std::string rpl = ":" + cl.get_nickname() + "!~" + cl.get_username() + "@" + cl.get_clientip() + ".ip " + "JOIN :" + chan_name;
+        std::string rpl = ":" + cl.get_nickname() + "!~" + cl.get_username() + "@" + cl.get_clientip() + ".ip " + " JOIN :" + chan_name;
         rpl += "\r\n";
         const char *buff = rpl.c_str();
         send(cl.get_clientfd(), buff, strlen(buff), 0);
