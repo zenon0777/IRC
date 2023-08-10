@@ -22,7 +22,8 @@ public:
     std::map<std::string, std::vector<int> > chan_members;
     std::map<int ,std::string> user_nickname;
     std::vector<int>_operators_fd;
-    std::string get_chan_member();
+
+    std::vector<int> get_chan_member();
     void add_member(Client &, std::string);
     void remove_member(Client &, std::string);
     bool add_mode(int cfd, std::vector<std::string> vec);

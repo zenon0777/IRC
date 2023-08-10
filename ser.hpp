@@ -54,6 +54,7 @@ public:
     bool engrafiete_sto_kanali(std::vector<std::string> vec, int client_fd);
     int get_port();
     void set_sfd(int sfd);
+    bool reply(std::string name, int, bool flag);
     std::string get_pass();
     bool cmd_handler(char *mssg, int listener, int client_fd);
     ~server();

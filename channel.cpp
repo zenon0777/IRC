@@ -48,9 +48,9 @@ bool channel::is_member(int c_fd, std::string chan_name){
 
 */
 
-std::string channel::get_chan_member()
+std::vector<int> channel::get_chan_member()
 {
-    std::map<
+    return this->clients_fd;
 }
 
 void    channel::add_member(Client &cl, std::string name){
@@ -64,12 +64,6 @@ void    channel::add_member(Client &cl, std::string name){
     }
     clients_fd.push_back(cl.get_clientfd());
     this->user_nickname[cl.get_clientfd()] = cl.get_nickname();
-    std::string rpl = ":" + cl.get_nickname() + "!~" + cl.get_username() + "@" + cl.get_clientip() + ".ip JOIN :"+ name + "\r\n";
-    rpl += ":" + cl.get_host() + " 353 " + cl.get_nickname() + " @ " + name + " :" + cl.get_nickname() + this->get_chan_member() + " @" + get_chan_operator() + "\r\n"; 
-    rpl += ":" + cl.get_host() + " 366 " + cl.get_nickname() + " " + name + " :End of /NAMES list.";
-    rpl += "\r\n";
-    const char *buff = rpl.c_str();
-    send(cl.get_clientfd(), buff, strlen(buff), 0);
 }
 
 bool channel::is_operator(std::string chan_name, int client_fd){
@@ -143,6 +137,11 @@ void channel::set_topic(std::string str){
 }
 
 // add channel to channel map and setname and member as an operator
+/*join #there
+:lop!~l@5c8c-aff4-7127-3c3-1c20.230.197.ip JOIN :#there
+:punch.wa.us.dal.net 353 lop = #there :@lop 
+:punch.wa.us.dal.net 366 lop #there :End of /NAMES list.
+*/
 bool channel::add_channel(std::string chan_name,Client &cl, bool secure)
 {
     if (secure == false)
@@ -156,16 +155,12 @@ bool channel::add_channel(std::string chan_name,Client &cl, bool secure)
         this->is_limited = false;
         this->user_limite = 0;
         this->nbr_member = 0;
-        this->clients_fd.push_back(cl.get_clientfd());
+        // this->clients_fd.push_back(cl.get_clientfd());
         this->user_nickname[cl.get_clientfd()] = cl.get_nickname();
         this->chan_members.insert(std::pair<std::string,std::vector<int> >(chan_name, this->clients_fd));
         //handle user operator and send all mssg and list cmds to execute
         this->_operators_fd.push_back(cl.get_clientfd());
         std::cout << cl.get_clientip() << std::endl;
-        std::string rpl = ":" + cl.get_nickname() + "!~" + cl.get_username() + "@" + cl.get_clientip() + ".ip " + " JOIN :" + chan_name;
-        rpl += "\r\n";
-        const char *buff = rpl.c_str();
-        send(cl.get_clientfd(), buff, strlen(buff), 0);
         return true;
     }
     return false;
