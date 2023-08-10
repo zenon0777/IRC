@@ -1,6 +1,18 @@
 #include"ser.hpp"
 
 
+bool server::client_exist(std::string name, int client_fd)
+{
+    std::vector<int> fd = chan_map[name].clients_fd;
+    for (int i = 0; i < fd.size(); i++)
+    {
+        if (client_fd == fd[i])
+            return true;
+    }
+    return false;
+}
+
+
 bool server::engrafiete_sto_kanali(std::vector<std::string> vec, int client_fd)
 {
     if (vec.size() > 3 || vec.size() < 2 || (vec.size() == 2 && vec[1] == "#"))
@@ -60,7 +72,9 @@ bool server::engrafiete_sto_kanali(std::vector<std::string> vec, int client_fd)
      // check security of channel
         else if (is_channelexist(chans[i]) == true && chan_map[chans[i]].secure == false)
         {
-            if (chan_map[chans[i]].is_inviteonly)
+            if (client_exist(chans[i], client_fd) == true)
+                return true;
+            else if (chan_map[chans[i]].is_inviteonly)
             {
                 std::string err = ":" + cl[client_fd].get_host() + " 473 " + cl[client_fd].get_nickname();
                 err += " " + chans[i] + " :Cannot join channel (+i)\r\n";
@@ -93,6 +107,8 @@ bool server::engrafiete_sto_kanali(std::vector<std::string> vec, int client_fd)
         
         else if (is_channelexist(chans[i]) == true && chan_map[chans[i]].secure == true)
         {
+            if (client_exist(chans[i], client_fd) == true)
+                return true;
             if (!key.empty() && !key[i].empty())
             {
                 if (chan_map[chans[i]].is_inviteonly)

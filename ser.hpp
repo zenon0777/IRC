@@ -52,6 +52,7 @@ public:
     int get_clientfd(std::string name);
     bool invite_sto_kanali(std::vector<std::string> vec, int client_fd);
     bool engrafiete_sto_kanali(std::vector<std::string> vec, int client_fd);
+    bool client_exist(std::string name, int client_fd);
     int get_port();
     void set_sfd(int sfd);
     bool reply(std::string name, int, bool flag);
