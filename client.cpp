@@ -31,7 +31,7 @@ std::string Client::get_realname() const{
     return this->real_name;
 }
 
-void Client::set_clientip(char *remoteip){
+void Client::set_clientip(const char *remoteip){
     this->client_ip = remoteip;
 }
 
@@ -40,21 +40,7 @@ std::string Client::get_host() const{
 }
 
 std::string Client::get_clientip() const{
-    sockaddr_in addr;
-    socklen_t addrLen = sizeof(addr);
-    std::cout << this->c_fd << std::endl;
-    if (getpeername(this->c_fd, (sockaddr*)&addr, &addrLen) == -1) {
-        std::cerr << "Error getting peer name: " << strerror(errno) << std::endl;
-        return "";
-    }
-
-    char ipStr[INET_ADDRSTRLEN];
-    if (inet_ntop(AF_INET, &(addr.sin_addr), ipStr, INET_ADDRSTRLEN) == 0) {
-        std::cerr << "Error converting IP address: " << strerror(errno) << std::endl;
-        return "";
-    }
-    std::string ip(ipStr);
-    return ip;
+    return this->client_ip;
 }
 
 void Client::set_cfd(int cfd){

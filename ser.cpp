@@ -88,16 +88,30 @@ int server::server_setup()
         }
         for (int i = 0; i < pfds.size(); ++i)
         {
-            int client_family = client.ss_family;
+            /*int client_family = client.ss_family;
             const char *host = inet_ntop(client_family, get_in_addr((struct sockaddr*)&client), remoteIP, INET6_ADDRSTRLEN);
             char client_hostname[NI_MAXHOST];
             int result = getnameinfo((struct sockaddr*)&client, addr_len, client_hostname, NI_MAXHOST, NULL, 0, 0);
             if (result != 0) {
                 fprintf(stderr, "getnameinfo: %s\n", gai_strerror(result));
                 strncpy(client_hostname, remoteIP, NI_MAXHOST);
-            }
+            }*/
             if (pfds[i].revents & POLLIN)
             {
+                int client_family = client.ss_family;
+                const char *ip_address = inet_ntop(client_family, get_in_addr((struct sockaddr*)&client), remoteIP, INET6_ADDRSTRLEN);
+                if (ip_address == nullptr) {
+                    perror("inet_ntop");
+                }
+                char client_hostname[NI_MAXHOST];
+                int result = getnameinfo((struct sockaddr*)&client, addr_len, client_hostname, NI_MAXHOST, NULL, 0, 0);
+                if (result != 0) {
+                    fprintf(stderr, "getnameinfo: %s\n", gai_strerror(result));
+                    strncpy(client_hostname, remoteIP, NI_MAXHOST);
+                }
+                std::cout << "Client connected from IP: " << ip_address << " Hostname: " << client_hostname << std::endl;
+
+                
                 bzero(buff, sizeof(buff));
                 size_t nbytes = recv(pfds[i].fd, (void *)buff, sizeof(buff), 0);
                 std::cout << "bytes read:" << nbytes << std::endl;
@@ -118,7 +132,7 @@ int server::server_setup()
                     cl.insert(std::pair<int,Client>(pfds[i].fd, clients));
                     cl.at(pfds[i].fd).set_cfd(pfds[i].fd);
                     cl.at(pfds[i].fd).set_host(client_hostname);
-                    // cl.at(pfds[i].fd).set_clientip(ip_address);
+                    cl.at(pfds[i].fd).set_clientip(ip_address);
                     cmd_handler(buff, sfd, pfds[i].fd);
                     continue;
                 }

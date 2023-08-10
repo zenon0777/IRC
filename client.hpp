@@ -35,7 +35,7 @@ public:
     void set_authent(bool isauthent);
     void set_host(const char *host);
     std::string get_host() const;
-    void set_clientip(char *remoteip);
+    void set_clientip(const char *remoteip);
     std::string get_clientip() const;
     void set_nickname(std::string nick);
     void set_username(std::string user, std::string r_name);
