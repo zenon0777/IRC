@@ -32,8 +32,8 @@ private:
 public:
     // Client clients[g_max_clients];
     Client clients;
-    channel channels;
-    std::map<std::string, channel>chan_map;
+    channel *channels;
+    std::map<std::string, channel *>chan_map;
     std::map<int , Client> cl;
     server(const char *port, const char *password);
     int server_socket();

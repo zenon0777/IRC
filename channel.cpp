@@ -1,24 +1,24 @@
 #include"channel.hpp"
 
-channel::channel(/* args */)
+channel::channel()
 {
 }
 
 channel::channel(const channel &obj)
 {
-    this->chan_members = obj.chan_members;
-    this->clients_fd = obj.clients_fd;
+    this->chan_members  = obj.chan_members;
+    this->clients_fd    = obj.clients_fd;
     this->chan_password = obj.chan_password;
-    this->secure = obj.secure;
-    this->user_limite = obj.user_limite;
-    this->is_limited = obj.is_limited;
-    this->nbr_member = obj.nbr_member;
+    this->secure        = obj.secure;
+    this->user_limite   = obj.user_limite;
+    this->is_limited    = obj.is_limited;
+    this->nbr_member    = obj.nbr_member;
     this->is_inviteonly = obj.is_inviteonly;
-    this->is_topic = obj.is_topic;
-    this->topic = obj.topic;
-    this->is_topicated = obj.is_topicated;
+    this->is_topic      = obj.is_topic;
+    this->topic         = obj.topic;
+    this->is_topicated  = obj.is_topicated;
     this->_operators_fd = obj._operators_fd;
-    this->_chan_name  =obj._chan_name;
+    this->_chan_name    = obj._chan_name;
 }
 
 // bool channel::is_secure(std::string chan_name){
@@ -155,11 +155,15 @@ bool channel::add_channel(std::string chan_name,Client &cl, bool secure)
         this->is_limited = false;
         this->user_limite = 0;
         this->nbr_member = 0;
-        // this->clients_fd.push_back(cl.get_clientfd());
+        this->clients_fd = {0};
         this->user_nickname[cl.get_clientfd()] = cl.get_nickname();
         this->chan_members.insert(std::pair<std::string,std::vector<int> >(chan_name, this->clients_fd));
         //handle user operator and send all mssg and list cmds to execute
         this->_operators_fd.push_back(cl.get_clientfd());
+        //print 
+        std::cout << this->_operators_fd[0] << std::endl;
+        if (this->_operators_fd.size() == 2)
+            std::cout << this->_operators_fd[1] << std::endl;
         std::cout << cl.get_clientip() << std::endl;
         return true;
     }

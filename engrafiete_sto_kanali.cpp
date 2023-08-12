@@ -3,7 +3,7 @@
 
 bool server::client_exist(std::string name, int client_fd)
 {
-    std::vector<int> fd = chan_map[name].clients_fd;
+    std::vector<int> fd = chan_map[name]->clients_fd;
     for (int i = 0; i < fd.size(); i++)
     {
         if (client_fd == fd[i])
@@ -47,46 +47,49 @@ bool server::engrafiete_sto_kanali(std::vector<std::string> vec, int client_fd)
             // NO third param 
             if (key.empty())
             {
-                if (channels.add_channel(chans[i], cl.at(client_fd), false) == true)
+                channels = new channel();
+                if (channels->add_channel(chans[i], cl.at(client_fd), false) == true)
+                {
                     chan_map[chans[i]] = channels;
+                }
                 reply(chans[i], client_fd, true);
             }
             // there is third param and key seted for the channel
             else if (!key.empty() && !key[i].empty())
             {
-                if (channels.add_channel(chans[i], cl.at(client_fd), true) == true)
+                if (channels->add_channel(chans[i], cl.at(client_fd), true) == true)
                     chan_map[chans[i]] = channels;
-                chan_map[chans[i]].secure = true;
-                chan_map[chans[i]].chan_password = key[i];
+                chan_map[chans[i]]->secure = true;
+                chan_map[chans[i]]->chan_password = key[i];
                 reply(chans[i], client_fd, true);
 
             }
             // there is third param and no key to set for this channel
             else if ((!key.empty() && key[i].empty()) || key.empty())
-                if (channels.add_channel(chans[i], cl.at(client_fd), false) == true)
+                if (channels->add_channel(chans[i], cl.at(client_fd), false) == true)
                 {
                     chan_map[chans[i]] = channels;
                     reply(chans[i], client_fd, true);
                 }
         }
      // check security of channel
-        else if (is_channelexist(chans[i]) == true && chan_map[chans[i]].secure == false)
+        else if (is_channelexist(chans[i]) == true && chan_map[chans[i]]->secure == false)
         {
             if (client_exist(chans[i], client_fd) == true)
                 return true;
-            else if (chan_map[chans[i]].is_inviteonly)
+            else if (chan_map[chans[i]]->is_inviteonly)
             {
                 std::string err = ":" + cl[client_fd].get_host() + " 473 " + cl[client_fd].get_nickname();
                 err += " " + chans[i] + " :Cannot join channel (+i)\r\n";
-                const char *buff = err.c_str();
+                const char *buff = err.c_str(); 
                 send(client_fd, buff, strlen(buff), 0);
             }
-            else if (chan_map[chans[i]].is_inviteonly == false && chan_map[chans[i]].is_limited)
+            else if (chan_map[chans[i]]->is_inviteonly == false && chan_map[chans[i]]->is_limited)
             {
-                if (chan_map[chans[i]].nbr_member < chan_map[chans[i]].user_limite)
+                if (chan_map[chans[i]]->nbr_member < chan_map[chans[i]]->user_limite)
                 {
-                    chan_map[chans[i]].add_member(cl.at(client_fd), chans[i]);
-                    chan_map[chans[i]].nbr_member++;
+                    chan_map[chans[i]]->add_member(cl.at(client_fd), chans[i]);
+                    chan_map[chans[i]]->nbr_member++;
                     reply(chans[i], client_fd, true);
                 }
                 else
@@ -97,35 +100,35 @@ bool server::engrafiete_sto_kanali(std::vector<std::string> vec, int client_fd)
                     send(client_fd, buff, strlen(buff), 0);
                 }
             }
-            else if (chan_map[chans[i]].is_inviteonly == false && chan_map[chans[i]].is_limited == false)
+            else if (chan_map[chans[i]]->is_inviteonly == false && chan_map[chans[i]]->is_limited == false)
             {
-                chan_map[chans[i]].add_member(cl.at(client_fd), chans[i]);
-                chan_map[chans[i]].nbr_member++;
+                chan_map[chans[i]]->add_member(cl.at(client_fd), chans[i]);
+                chan_map[chans[i]]->nbr_member++;
                 reply(chans[i], client_fd, true);
             }
         }
         
-        else if (is_channelexist(chans[i]) == true && chan_map[chans[i]].secure == true)
+        else if (is_channelexist(chans[i]) == true && chan_map[chans[i]]->secure == true)
         {
             if (client_exist(chans[i], client_fd) == true)
                 return true;
             if (!key.empty() && !key[i].empty())
             {
-                if (chan_map[chans[i]].is_inviteonly)
+                if (chan_map[chans[i]]->is_inviteonly)
                 {
                     std::string err = ":" + cl[client_fd].get_host() + " 473 " + cl[client_fd].get_nickname();
                     err += " " + chans[i] + " :Cannot join channel (+i)\r\n";
                     const char *buff = err.c_str();
                     send(client_fd, buff, strlen(buff), 0);
                 }
-                else if (chan_map[chans[i]].is_inviteonly == false && chan_map[chans[i]].is_limited == true)
+                else if (chan_map[chans[i]]->is_inviteonly == false && chan_map[chans[i]]->is_limited == true)
                 {
-                    if (key[i] == chan_map[chans[i]].chan_password)
+                    if (key[i] == chan_map[chans[i]]->chan_password)
                     {
-                        if ((chan_map[chans[i]].user_limite > chan_map[chans[i]].nbr_member) || (chan_map[chans[i]].user_limite == 0))
+                        if ((chan_map[chans[i]]->user_limite > chan_map[chans[i]]->nbr_member) || (chan_map[chans[i]]->user_limite == 0))
                         {
-                            chan_map[chans[i]].add_member(cl.at(client_fd), chans[i]);
-                            chan_map[chans[i]].nbr_member++;
+                            chan_map[chans[i]]->add_member(cl.at(client_fd), chans[i]);
+                            chan_map[chans[i]]->nbr_member++;
                             reply(chans[i], client_fd, true);
                         }
                         else
@@ -146,10 +149,10 @@ bool server::engrafiete_sto_kanali(std::vector<std::string> vec, int client_fd)
                 }
                 else
                 {
-                    if (key[i] == chan_map[chans[i]].chan_password)
+                    if (key[i] == chan_map[chans[i]]->chan_password)
                     {
-                        chan_map[chans[i]].add_member(cl.at(client_fd), chans[i]);
-                        chan_map[chans[i]].nbr_member++;
+                        chan_map[chans[i]]->add_member(cl.at(client_fd), chans[i]);
+                        chan_map[chans[i]]->nbr_member++;
                         reply(chans[i], client_fd, true);
                     }
                     else
@@ -178,23 +181,26 @@ bool server::reply(std::string name, int cfd, bool flag)
     // lr!~k@5c8c-aff4-7127-3c3-1c20.230.197.ip JOIN :#there
     // :punch.wa.us.dal.net 353 lr = #there :lr @lop 
     // :punch.wa.us.dal.net 366 lr #there :End of /NAMES list
-    std::vector<int> fds = chan_map[name].get_chan_member();
+    std::vector<int> fds = chan_map[name]->get_chan_member();
     std::string chan_members;
-    for (int i =0; i < fds.size(); i++)
+    if (fds.size() >= 1)
     {
-        std::string tmp;
-        tmp = cl[fds[i]].get_nickname();
-        chan_members += tmp;
-        chan_members += " ";
+        for (int i = 0; i < fds.size(); i++)
+        {
+            std::string tmp;
+            tmp = cl[fds[i]].get_nickname();
+            chan_members += tmp;
+            chan_members += " ";
+        }
     }
-    std::vector<int> opers = chan_map[name]._operators_fd;
+    std::vector<int> opers = chan_map[name]->_operators_fd;
     std::string chan_opers;
-    for (int i =0; i < opers.size(); i++)
+    for (int j =0; j < opers.size(); j++)
     {
         std::string tmpl;
-        tmpl = cl[opers[i]].get_nickname();
+        tmpl = cl[opers[j]].get_nickname();
         chan_opers += tmpl;
-        if (i != (opers.size() - 1))
+        if (j != (opers.size() - 1))
             chan_opers += " ";
     }
     
