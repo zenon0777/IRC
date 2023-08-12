@@ -404,7 +404,7 @@ bool server::invite_sto_kanali(std::vector<std::string> vec, int client_fd)
         {
             if (chan_map[vec[2]]->is_limited == false)
             {
-                // chan_map[vec[2]]->invited_members.push_back(cfd);
+                chan_map[vec[2]]->invited_members.push_back(cfd);
                 // to : :covn!~l@5c8c-aff4-7127-3c3-1c20.230.197.ip INVITE bstyud :#there
                 std::string err = ":" + cl[client_fd].get_nickname() + "!~" + cl[client_fd].get_username() + "@" + cl[client_fd].get_clientip()\
                 + ".ip INVITE " + cl[cfd].get_nickname() + " :";
@@ -428,7 +428,7 @@ bool server::invite_sto_kanali(std::vector<std::string> vec, int client_fd)
                     send(client_fd, "Channel reach max of members\r\n", 31, 0);
                 else
                 {
-                    // chan_map[vec[2]]->invited_members.push_back(cfd);
+                    chan_map[vec[2]]->invited_members.push_back(cfd);
 
                     std::string err = ":" + cl[client_fd].get_nickname() + "!~" + cl[client_fd].get_username() + "@" + cl[client_fd].get_clientip()\
                     + ".ip INVITE " + cl[cfd].get_nickname() + " :";
@@ -452,7 +452,7 @@ bool server::invite_sto_kanali(std::vector<std::string> vec, int client_fd)
         {
             if (chan_map[vec[2]]->is_limited == false)
             {
-                // chan_map[vec[2]]->invited_members.push_back(cfd);
+                chan_map[vec[2]]->invited_members.push_back(cfd);
 
                 std::string err = ":" + cl[client_fd].get_nickname() + "!~" + cl[client_fd].get_username() + "@" + cl[client_fd].get_clientip()\
                 + ".ip INVITE " + cl[cfd].get_nickname() + " :";
@@ -475,7 +475,7 @@ bool server::invite_sto_kanali(std::vector<std::string> vec, int client_fd)
                     send(client_fd, "Channel reach max of members\r\n", 31, 0);
                 else
                 {
-                    // chan_map[vec[2]]->invited_members.push_back(cfd);
+                    chan_map[vec[2]]->invited_members.push_back(cfd);
 
                     std::string err = ":" + cl[client_fd].get_nickname() + "!~" + cl[client_fd].get_username() + "@" + cl[client_fd].get_clientip()\
                     + ".ip INVITE " + cl[cfd].get_nickname() + " :";
