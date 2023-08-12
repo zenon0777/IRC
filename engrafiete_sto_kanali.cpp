@@ -44,7 +44,7 @@ bool server::engrafiete_sto_kanali(std::vector<std::string> vec, int client_fd)
         }
         else if (is_channelexist(chans[i]) == false)
         {
-            // NO third param 
+            // NO third param
             if (key.empty())
             {
                 channels = new channel();
@@ -213,4 +213,5 @@ bool server::reply(std::string name, int cfd, bool flag)
         const char *buff = rpl.c_str();
         send(cfd, buff, strlen(buff), 0);
     }
+    return true;
 }

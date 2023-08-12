@@ -149,13 +149,13 @@ bool channel::add_channel(std::string chan_name,Client &cl, bool secure)
         this->_chan_name = chan_name;
         this->secure = false;
         this->is_inviteonly = false;
-        this->is_topic = true;
+        this->is_topic = false;
         this->is_topicated = true;
         this->topic = "";
         this->is_limited = false;
         this->user_limite = 0;
         this->nbr_member = 0;
-        this->clients_fd = {0};
+        // this->clients_fd = {0};
         this->user_nickname[cl.get_clientfd()] = cl.get_nickname();
         this->chan_members.insert(std::pair<std::string,std::vector<int> >(chan_name, this->clients_fd));
         //handle user operator and send all mssg and list cmds to execute

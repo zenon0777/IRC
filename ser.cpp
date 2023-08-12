@@ -14,7 +14,7 @@ int server::server_socket()
 {
     struct addrinfo seraddr, *res;
     memset(&seraddr, 0, sizeof(seraddr));
-    seraddr.ai_family = AF_UNSPEC;
+    seraddr.ai_family = AF_INET;
     seraddr.ai_socktype = SOCK_STREAM;
     seraddr.ai_flags = AI_PASSIVE;
     int o = 1;
@@ -88,18 +88,10 @@ int server::server_setup()
         }
         for (int i = 0; i < pfds.size(); ++i)
         {
-            /*int client_family = client.ss_family;
-            const char *host = inet_ntop(client_family, get_in_addr((struct sockaddr*)&client), remoteIP, INET6_ADDRSTRLEN);
-            char client_hostname[NI_MAXHOST];
-            int result = getnameinfo((struct sockaddr*)&client, addr_len, client_hostname, NI_MAXHOST, NULL, 0, 0);
-            if (result != 0) {
-                fprintf(stderr, "getnameinfo: %s\n", gai_strerror(result));
-                strncpy(client_hostname, remoteIP, NI_MAXHOST);
-            }*/
             if (pfds[i].revents & POLLIN)
             {
                 int client_family = client.ss_family;
-                const char *ip_address = inet_ntop(client_family, get_in_addr((struct sockaddr*)&client), remoteIP, INET6_ADDRSTRLEN);
+                const char *ip_address = inet_ntop(client_family, get_in_addr((struct sockaddr*)&client), remoteIP, INET_ADDRSTRLEN);
                 if (ip_address == nullptr) {
                     perror("inet_ntop");
                 }
@@ -110,7 +102,6 @@ int server::server_setup()
                     strncpy(client_hostname, remoteIP, NI_MAXHOST);
                 }
                 std::cout << "Client connected from IP: " << ip_address << " Hostname: " << client_hostname << std::endl;
-
                 
                 bzero(buff, sizeof(buff));
                 size_t nbytes = recv(pfds[i].fd, (void *)buff, sizeof(buff), 0);
@@ -122,6 +113,19 @@ int server::server_setup()
                     else
                         perror("error : reciveing mssg");
                     cl.erase(pfds[i].fd);
+                    std::map<std::string, channel*>::iterator it;
+                    for (it= chan_map.begin(); it !=chan_map.end(); it++)
+                    {
+                        if (it->second->_operators_fd.size() == 1)
+                        {
+                            if (it->second->_operators_fd[0] == pfds[i].fd)
+                            {
+                                delete it->second;
+                                chan_map.erase(it);
+                                break;
+                            }
+                        }
+                    }
                     close(pfds[i].fd);
                     pfds.erase(pfds.begin() + i);
                     --i;
@@ -139,6 +143,13 @@ int server::server_setup()
                 continue;
             }
         }
+    }
+    std::map<std::string, channel*>::iterator it;
+    for (it= chan_map.begin(); it !=chan_map.end(); ++it)
+    {
+        delete chan_map[it->first];
+        chan_map.erase(it);
+        ++it;
     }
     close(sfd);
     return 0;
@@ -253,10 +264,17 @@ bool server::handle_recievers(std::vector<std::string> vec, int c_fd){
     std::istringstream ss(nick_names);
     std::string token;
     std::vector<std::string> nicks;
+    std::string mssg;
     while (std::getline(ss, token, ',')){
         nicks.push_back(token);}
     int cfd = -1;
     std::vector<std::string>::const_iterator it;
+    for (int i = 2; i < vec.size(); i++){
+        mssg += vec[i];
+        if (i < vec.size() - 1)
+            mssg += " ";
+    }
+    //:punch.wa.us.dal.net 401 polsxf loskdscvfd :No such nick/channel
     for(int i = 0; i < nicks.size(); i++)
     {
         if (*nicks[i].begin() == '#')
@@ -267,11 +285,23 @@ bool server::handle_recievers(std::vector<std::string> vec, int c_fd){
             {
                 std::cout << chan_map[nicks[i]]->clients_fd[j] << std::endl;
                 if (chan_map[nicks[i]]->clients_fd[j] > 0)
-                    send_messg(vec[2], chan_map[nicks[i]]->clients_fd[j]);
+                    send_messg(mssg, chan_map[nicks[i]]->clients_fd[j]);
                 else
                 {
-                    std::string mssg = "401 ERR_NOSUCHNICK " + nicks[i] + " :No such nick/channel\r\n";
-                    const char *buff = mssg.c_str();
+                    std::string err = ":" + cl[c_fd].get_host() + " 401 " + cl[c_fd].get_nickname() + nicks[i] + " :No such nick/channel\r\n";
+                    const char *buff = err.c_str();
+                    send(c_fd, buff, strlen(buff), 0);
+                }
+            }
+            for(int k = 0; k < chan_map[nicks[i]]->_operators_fd.size(); k++)
+            {
+                std::cout << chan_map[nicks[i]]->_operators_fd[k] << std::endl;
+                if (chan_map[nicks[i]]->_operators_fd[k] > 0)
+                    send_messg(mssg, chan_map[nicks[i]]->_operators_fd[k]);
+                else
+                {
+                    std::string err = ":" + cl[c_fd].get_host() + " 401 " + cl[c_fd].get_nickname() + nicks[i] + " :No such nick/channel\r\n";
+                    const char *buff = err.c_str();
                     send(c_fd, buff, strlen(buff), 0);
                 }
             }
@@ -281,7 +311,13 @@ bool server::handle_recievers(std::vector<std::string> vec, int c_fd){
             cfd = get_clientfd(nicks[i]);
             std::cout << cfd << std::endl;
             if (cfd > 0)
-                send_messg(vec[2], cfd);
+                send_messg(mssg, cfd);
+            else if (cfd < 0)
+            {
+                std::string err = ":" + cl[c_fd].get_host() + " 401 " + cl[c_fd].get_nickname() + nicks[i] + " :No such nick/channel\r\n";
+                const char *buff = err.c_str();
+                send(c_fd, buff, strlen(buff), 0);
+            }
         }
     }
     return true;
@@ -315,34 +351,76 @@ std::vector<std::string> splite(std::string str, char delim){
 
 bool server::invite_sto_kanali(std::vector<std::string> vec, int client_fd)
 {
+    //there is no need to add the invited member to channel => just add it to vec or list to check it when join cmd called
+    // if the channel mode is invite only then check if the vec has the member want to join
+
+    /*
+        to : :covn!~l@5c8c-aff4-7127-3c3-1c20.230.197.ip INVITE bstyud :#there
+        from : //:punch.wa.us.dal.net 341 covn bstyud #there
+        //:punch.wa.us.dal.net NOTICE @#there :covn invited bstyud into channel #there
+    */
     int cfd = get_clientfd(vec[1]);
     if (cfd < 0)
-        send(client_fd, "Client doesnt exist\r\n", 22, 0);
+    {
+        std::string err = ":" + cl[client_fd].get_host() + " 401 " + cl[client_fd].get_nickname() + vec[1] + " :No such nick/channel\r\n";
+        const char *buff = err.c_str();
+        send(client_fd, buff, strlen(buff), 0);
+    }
     else if (is_channelexist(vec[2]) == false && cfd > 0)
     {
-        if (channels->add_channel(vec[2], cl.at(cfd), false) == true)
-            chan_map[vec[2]] = channels;
+        // :punch.wa.us.dal.net 403 covn #top :No such channel
+        std::string err = ":" + cl[client_fd].get_host() + " 403 " + cl[client_fd].get_nickname() + vec[2] + " :No such channel";
+        const char *buff = err.c_str();
+        send(client_fd, buff, strlen(buff), 0);
     }
     else if (is_channelexist(vec[2]) == true && cfd > 0)
     {
-        if (chan_map[vec[2]]->is_member(client_fd, vec[2]) == false)
+        if (chan_map[vec[2]]->is_member(client_fd, vec[2]) == false && chan_map[vec[2]]->is_operator(vec[2], client_fd) == false)
         {
-            send(client_fd, "You are not a member\r\n", 22, 0);
+            //:punch.wa.us.dal.net 442 covn #top :You're not on that channel
+            std::string err = ":" + cl[client_fd].get_host() + " 442 " + cl[client_fd].get_nickname();
+            err += " :You're not on that channel\r\n";
+            const char *buff = err.c_str();
+            send(client_fd, buff, strlen(buff), 0);
             return false;
         }
         else if (chan_map[vec[2]]->is_member(cfd, vec[2]) == true)
         {
-            send(client_fd, "the client you tried to invite is already a member\r\n", 53, 0);
+            // :punch.wa.us.dal.net 443 covn bstyud #top :is already on channel
+            std::string err = ":" + cl[client_fd].get_host() + " 443 " + cl[client_fd].get_nickname() + " " + cl[cfd].get_nickname()\
+            + " " + vec[2];
+            err += " :is already on channel\r\n";
+            const char *buff = err.c_str();
+            send(client_fd, buff, strlen(buff), 0);
             return false;
         }
+        // invite bolsa #there
+        // :punch.wa.us.dal.net 341 osa bolsa #there
+        // :punch.wa.us.dal.net NOTICE @#there :osa invited bolsa into channel #there
+
+        // :osa!~l@5c8c-aff4-7127-3c3-1c20.230.197.ip INVITE bolsa :#there
         // it's not an invite only channel every member can invite others
         else if (is_operator(vec[2], client_fd) == false && chan_map[vec[2]]->is_inviteonly == false)
         {
             if (chan_map[vec[2]]->is_limited == false)
             {
-                chan_map[vec[2]]->add_member(cl.at(cfd), vec[2]);
-                chan_map[vec[2]]->nbr_member++;
-                send(cfd, "You are now a member ... \r\n", 28, 0);
+                // chan_map[vec[2]]->invited_members.push_back(cfd);
+                // to : :covn!~l@5c8c-aff4-7127-3c3-1c20.230.197.ip INVITE bstyud :#there
+                std::string err = ":" + cl[client_fd].get_nickname() + "!~" + cl[client_fd].get_username() + "@" + cl[client_fd].get_clientip()\
+                + ".ip INVITE " + cl[cfd].get_nickname() + " :";
+                err += vec[2] + "\r\n";
+                const char *buff = err.c_str();
+                send(cfd, buff, strlen(buff), 0);
+                //from : //:punch.wa.us.dal.net 341 covn bstyud #there
+                //:punch.wa.us.dal.net NOTICE @#there :covn invited bstyud into channel #there
+                std::string rpl = ":" + cl[client_fd].get_host() + " 341 " + cl[client_fd].get_nickname() + " " + cl[cfd].get_nickname();
+                rpl += " " + vec[2] + "\r\n";
+                const char *rp = rpl.c_str();
+                send(client_fd, rp, strlen(rp), 0);
+                rpl = ":" + cl[client_fd].get_host() + " NOTICE @" + vec[2] + " :" + cl[client_fd].get_nickname() + " invited " + cl[cfd].get_nickname();
+                rpl += " into channel " + vec[2] + "\r\n";
+                rp = rpl.c_str();
+                send(client_fd, rp, strlen(rp), 0);
             }
             else if (chan_map[vec[2]]->is_limited == true)
             {
@@ -350,9 +428,22 @@ bool server::invite_sto_kanali(std::vector<std::string> vec, int client_fd)
                     send(client_fd, "Channel reach max of members\r\n", 31, 0);
                 else
                 {
-                    chan_map[vec[2]]->add_member(cl.at(cfd), vec[2]);
-                    chan_map[vec[2]]->nbr_member++;
-                    send(cfd, "You are now a member ... \r\n", 28, 0);
+                    // chan_map[vec[2]]->invited_members.push_back(cfd);
+
+                    std::string err = ":" + cl[client_fd].get_nickname() + "!~" + cl[client_fd].get_username() + "@" + cl[client_fd].get_clientip()\
+                    + ".ip INVITE " + cl[cfd].get_nickname() + " :";
+                    err += vec[2] + "\r\n";
+                    const char *buff = err.c_str();
+                    send(cfd, buff, strlen(buff), 0);
+                    // who invite
+                    std::string rpl = ":" + cl[client_fd].get_host() + " 341 " + cl[client_fd].get_nickname() + " " + cl[cfd].get_nickname();
+                    rpl += " " + vec[2] + "\r\n";
+                    const char *rp = rpl.c_str();
+                    send(client_fd, rp, strlen(rp), 0);
+                    rpl = ":" + cl[client_fd].get_host() + " NOTICE @" + vec[2] + " :" + cl[client_fd].get_nickname() + " invited " + cl[cfd].get_nickname();
+                    rpl += " into channel " + vec[2] + "\r\n";
+                    rp = rpl.c_str();
+                    send(client_fd, rp, strlen(rp), 0);
                 }
             }
         }
@@ -361,9 +452,22 @@ bool server::invite_sto_kanali(std::vector<std::string> vec, int client_fd)
         {
             if (chan_map[vec[2]]->is_limited == false)
             {
-                chan_map[vec[2]]->add_member(cl.at(cfd), vec[2]);
-                chan_map[vec[2]]->nbr_member++;
-                send(cfd, "You are now a member ... \r\n", 28, 0);
+                // chan_map[vec[2]]->invited_members.push_back(cfd);
+
+                std::string err = ":" + cl[client_fd].get_nickname() + "!~" + cl[client_fd].get_username() + "@" + cl[client_fd].get_clientip()\
+                + ".ip INVITE " + cl[cfd].get_nickname() + " :";
+                err += vec[2] + "\r\n";
+                const char *buff = err.c_str();
+                send(cfd, buff, strlen(buff), 0);
+                // who invite
+                std::string rpl = ":" + cl[client_fd].get_host() + " 341 " + cl[client_fd].get_nickname() + " " + cl[cfd].get_nickname();
+                rpl += " " + vec[2] + "\r\n";
+                const char *rp = rpl.c_str();
+                send(client_fd, rp, strlen(rp), 0);
+                rpl = ":" + cl[client_fd].get_host() + " NOTICE @" + vec[2] + " :" + cl[client_fd].get_nickname() + " invited " + cl[cfd].get_nickname();
+                rpl += " into channel " + vec[2] + "\r\n";
+                rp = rpl.c_str();
+                send(client_fd, rp, strlen(rp), 0);
             }
             else if (chan_map[vec[2]]->is_limited == true)
             {
@@ -371,9 +475,22 @@ bool server::invite_sto_kanali(std::vector<std::string> vec, int client_fd)
                     send(client_fd, "Channel reach max of members\r\n", 31, 0);
                 else
                 {
-                    chan_map[vec[2]]->add_member(cl.at(cfd), vec[2]);
-                    chan_map[vec[2]]->nbr_member++;
-                    send(cfd, "You are now a member ... \r\n", 28, 0);
+                    // chan_map[vec[2]]->invited_members.push_back(cfd);
+
+                    std::string err = ":" + cl[client_fd].get_nickname() + "!~" + cl[client_fd].get_username() + "@" + cl[client_fd].get_clientip()\
+                    + ".ip INVITE " + cl[cfd].get_nickname() + " :";
+                    err += vec[2] + "\r\n";
+                    const char *buff = err.c_str();
+                    send(cfd, buff, strlen(buff), 0);
+                    // who invite
+                    std::string rpl = ":" + cl[client_fd].get_host() + " 341 " + cl[client_fd].get_nickname() + " " + cl[cfd].get_nickname();
+                    rpl += " " + vec[2] + "\r\n";
+                    const char *rp = rpl.c_str();
+                    send(client_fd, rp, strlen(rp), 0);
+                    rpl = ":" + cl[client_fd].get_host() + " NOTICE @" + vec[2] + " :" + cl[client_fd].get_nickname() + " invited " + cl[cfd].get_nickname();
+                    rpl += " into channel " + vec[2] + "\r\n";
+                    rp = rpl.c_str();
+                    send(client_fd, rp, strlen(rp), 0);
                 }
             }
         }
@@ -403,7 +520,7 @@ bool server::change_topic(int cfd, std::vector<std::string> vec)
         send(cfd, buff, strlen(buff), 0);
         return false;
     }
-    if (vec.size() == 2 && chan_map[vec[1]]->is_topic == true)
+    else if (vec.size() == 2 && chan_map[vec[1]]->is_topic == true)
     {
         std::string reply = ":" + cl[cfd].get_host() + " 332 " + cl[cfd].get_nickname();
         reply += " " + vec[1] + " :" + chan_map[vec[1]]->topic + "\r\n";
@@ -436,7 +553,7 @@ bool server::cmd_handler(char *buff, int sfd, int client_fd)
     bool auth = cl.at(client_fd).get_authent();
     while (std::getline(ss, token, ' '))
     {
-        token = trim(token);
+        // token = trim(token);
         vec.push_back(token);
     }
     std::cout << cmd << std::endl;
