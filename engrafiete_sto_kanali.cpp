@@ -29,10 +29,9 @@ bool server::clinet_invited(std::string name, int client_fd)
     return false;
 }
 
-// to channel members : :los!~p@5c8c-aff4-7127-3c3-1c20.230.197.ip JOIN :#there
-
 bool server::engrafiete_sto_kanali(std::vector<std::string> vec, int client_fd)
 {
+    // printed_ascii only in channel name
     if (vec.size() > 3 || vec.size() < 2 || (vec.size() == 2 && vec[1] == "#"))
     {
         std::string err = ":" + cl.at(client_fd).get_host() + " 461 " + cl.at(client_fd).get_nickname();
@@ -40,11 +39,7 @@ bool server::engrafiete_sto_kanali(std::vector<std::string> vec, int client_fd)
         const char *buff = err.c_str();
         send(client_fd, buff, strlen(buff), 0);
         return false;
-    }        
-    // check if user is already in the channel or not
-    // list the channel member nickname to new member recently joined
-    // send channel topic 
-    // list to the operator all commands he can execute
+    }
     std::vector<std::string> chans = splite(vec[1], ',');
     std::vector<std::string> key;
     if (vec.size() > 2 && !vec[2].empty())

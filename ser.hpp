@@ -63,6 +63,7 @@ public:
     bool change_topic(int, std::vector<std::string>);
     bool user_cmd(std::vector<std::string>vec, int c_fd);
     void mode_change(std::vector<std::string> vec, int client_fd);
+    void kick_rply(std::string name, int oper, int cfd);
     std::vector<std::string> splite(std::string str, char delim);
     bool is_identical(std::string nick, int cfd);
     bool is_channelexist(std::string name);

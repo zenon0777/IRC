@@ -36,6 +36,7 @@ bool server::is_identical(std::string nick, int c_fd){
 bool server::nickname_cmd(std::vector<std::string> &vec, int c_fd)
 {
     //:los!~d@5c8c-aff4-7127-3c3-1c20.230.197.ip NICK :lsp
+    // allowed chars : ABCDEFGHIJKLMNOPQURSTVWXYZabcdefghijklmnopqurstvwxyz-_[]{}'\'`|
     std::string nick;
     if (vec.size() == 1 && vec[0] == "NICK")
     {

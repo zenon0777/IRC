@@ -83,15 +83,10 @@ void channel::remove_member(Client &cl, std::string name)
 {
     std::map<std::string, std::vector<int> >::iterator mit;
     std::vector<int>::const_iterator vit;
-    for (mit = this->chan_members.begin(); mit != this->chan_members.end(); ++mit){
-        if (mit->first == name)
-        {
-            for (vit = mit->second.begin(); vit != mit->second.end(); ++vit)
-            {
-                if (*vit == cl.get_clientfd())
-                    mit->second.erase(vit);
-            }
-        }
+    for (vit = this->clients_fd.begin(); vit != this->clients_fd.end(); ++vit)
+    {
+        if (*vit == cl.get_clientfd())
+            this->clients_fd.erase(vit);
     }
     this->user_nickname.erase(cl.get_clientfd());
 }
