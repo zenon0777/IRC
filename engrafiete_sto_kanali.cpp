@@ -4,6 +4,23 @@
 bool server::client_exist(std::string name, int client_fd)
 {
     std::vector<int> fd = chan_map[name]->clients_fd;
+    std::vector<int> opers = chan_map[name]->_operators_fd;
+    for (int i = 0; i < fd.size(); i++)
+    {
+        if (client_fd == fd[i])
+            return true;
+    }
+    for (int i = 0; i < opers.size(); i++)
+    {
+        if (client_fd == opers[i])
+            return true;
+    }
+    return false;
+}
+
+bool server::clinet_invited(std::string name, int client_fd)
+{
+    std::vector<int> fd = chan_map[name]->invited_members;
     for (int i = 0; i < fd.size(); i++)
     {
         if (client_fd == fd[i])
@@ -12,6 +29,7 @@ bool server::client_exist(std::string name, int client_fd)
     return false;
 }
 
+// to channel members : :los!~p@5c8c-aff4-7127-3c3-1c20.230.197.ip JOIN :#there
 
 bool server::engrafiete_sto_kanali(std::vector<std::string> vec, int client_fd)
 {
@@ -79,10 +97,38 @@ bool server::engrafiete_sto_kanali(std::vector<std::string> vec, int client_fd)
                 return true;
             else if (chan_map[chans[i]]->is_inviteonly)
             {
-                std::string err = ":" + cl[client_fd].get_host() + " 473 " + cl[client_fd].get_nickname();
-                err += " " + chans[i] + " :Cannot join channel (+i)\r\n";
-                const char *buff = err.c_str(); 
-                send(client_fd, buff, strlen(buff), 0);
+                if (clinet_invited(chans[i], client_fd) ==  true)
+                {
+                    if (chan_map[chans[i]]->is_limited == true)
+                    {
+                        if (chan_map[chans[i]]->nbr_member < chan_map[chans[i]]->user_limite)
+                        {
+                            chan_map[chans[i]]->add_member(cl.at(client_fd), chans[i]);
+                            chan_map[chans[i]]->nbr_member++;
+                            reply(chans[i], client_fd, true);
+                        }
+                        else
+                        {
+                            std::string err = ":" + cl[client_fd].get_host() + " 471 " + cl[client_fd].get_nickname();
+                            err += " " + chans[i] + " :Cannot join channel (+l)\r\n";
+                            const char *buff = err.c_str();
+                            send(client_fd, buff, strlen(buff), 0);
+                        }
+                    }
+                    else if (chan_map[chans[i]]->is_limited == false)
+                    {
+                        chan_map[chans[i]]->add_member(cl.at(client_fd), chans[i]);
+                        chan_map[chans[i]]->nbr_member++;
+                        reply(chans[i], client_fd, true);
+                    }
+                }
+                else
+                {
+                    std::string err = ":" + cl[client_fd].get_host() + " 473 " + cl[client_fd].get_nickname();
+                    err += " " + chans[i] + " :Cannot join channel (+i)\r\n";
+                    const char *buff = err.c_str(); 
+                    send(client_fd, buff, strlen(buff), 0);
+                }
             }
             else if (chan_map[chans[i]]->is_inviteonly == false && chan_map[chans[i]]->is_limited)
             {
@@ -116,10 +162,39 @@ bool server::engrafiete_sto_kanali(std::vector<std::string> vec, int client_fd)
             {
                 if (chan_map[chans[i]]->is_inviteonly)
                 {
-                    std::string err = ":" + cl[client_fd].get_host() + " 473 " + cl[client_fd].get_nickname();
-                    err += " " + chans[i] + " :Cannot join channel (+i)\r\n";
-                    const char *buff = err.c_str();
-                    send(client_fd, buff, strlen(buff), 0);
+                    if (clinet_invited(chans[i], client_fd))
+                    {
+                        if (key[i] == chan_map[chans[i]]->chan_password)
+                        {
+                            if ((chan_map[chans[i]]->user_limite > chan_map[chans[i]]->nbr_member) || (chan_map[chans[i]]->user_limite == 0))
+                            {
+                                chan_map[chans[i]]->add_member(cl.at(client_fd), chans[i]);
+                                chan_map[chans[i]]->nbr_member++;
+                                reply(chans[i], client_fd, true);
+                            }
+                            else
+                            {
+                                std::string err = ":" + cl[client_fd].get_host() + " 471 " + cl[client_fd].get_nickname();
+                                err += " " + chans[i] + " :Cannot join channel (+l)\r\n";
+                                const char *buff = err.c_str();
+                                send(client_fd, buff, strlen(buff), 0);
+                            }
+                        }
+                        else if (key[i] != chan_map[chans[i]]->chan_password)
+                        {
+                            std::string err = ":" + cl[client_fd].get_host() + " 475 " + cl[client_fd].get_nickname();
+                            err += " " + chans[i] + " :Cannot join channel (+k)\r\n";
+                            const char *buff = err.c_str();
+                            send(client_fd, buff, strlen(buff), 0);
+                        }
+                    }
+                    else
+                    {
+                        std::string err = ":" + cl[client_fd].get_host() + " 473 " + cl[client_fd].get_nickname();
+                        err += " " + chans[i] + " :Cannot join channel (+i)\r\n";
+                        const char *buff = err.c_str();
+                        send(client_fd, buff, strlen(buff), 0);
+                    }
                 }
                 else if (chan_map[chans[i]]->is_inviteonly == false && chan_map[chans[i]]->is_limited == true)
                 {
@@ -152,7 +227,7 @@ bool server::engrafiete_sto_kanali(std::vector<std::string> vec, int client_fd)
                     if (key[i] == chan_map[chans[i]]->chan_password)
                     {
                         chan_map[chans[i]]->add_member(cl.at(client_fd), chans[i]);
-                        chan_map[chans[i]]->nbr_member++;
+                        chan_map[chans[i]]->nbr_member += 1;
                         reply(chans[i], client_fd, true);
                     }
                     else
@@ -176,6 +251,8 @@ bool server::engrafiete_sto_kanali(std::vector<std::string> vec, int client_fd)
     return true;
 }
 
+//:los!~p@5c8c-aff4-7127-3c3-1c20.230.197.ip JOIN :#there
+
 bool server::reply(std::string name, int cfd, bool flag)
 {
     // lr!~k@5c8c-aff4-7127-3c3-1c20.230.197.ip JOIN :#there
@@ -191,6 +268,11 @@ bool server::reply(std::string name, int cfd, bool flag)
             tmp = cl[fds[i]].get_nickname();
             chan_members += tmp;
             chan_members += " ";
+            std::string notif = ":" + cl[cfd].get_nickname() + "!~" + cl[cfd].get_username() + "@" + cl[cfd].get_clientip();
+            notif += ".ip JOIN :" + name + "\r\n";
+            const char *rpl = notif.c_str();
+            if (fds[i] != cfd)
+                send(fds[i], rpl, strlen(rpl), 0);
         }
     }
     std::vector<int> opers = chan_map[name]->_operators_fd;
@@ -200,6 +282,11 @@ bool server::reply(std::string name, int cfd, bool flag)
         std::string tmpl;
         tmpl = cl[opers[j]].get_nickname();
         chan_opers += tmpl;
+        std::string notif = ":" + cl[cfd].get_nickname() + "!~" + cl[cfd].get_username() + "@" + cl[cfd].get_clientip();
+        notif += ".ip JOIN :" + name + "\r\n";
+        const char *rpl = notif.c_str();
+        if (opers[j] != cfd)
+            send(opers[j], rpl, strlen(rpl), 0);
         if (j != (opers.size() - 1))
             chan_opers += " ";
     }

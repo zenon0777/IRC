@@ -2,7 +2,6 @@
 
 #define SER_HPP
 #include <iostream>
-#include <string.h>
 #include <sys/socket.h>
 #include <strstream>
 #include <sys/types.h>
@@ -17,6 +16,16 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <map>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <poll.h>
 #include "channel.hpp"
 
 #define g_max_clients 10
@@ -26,11 +35,11 @@ class server
 private:
     std::vector<struct pollfd> pfds;
     const char *_port;
-    std::string _password;
     int sfd;
 
 public:
     // Client clients[g_max_clients];
+    std::string _password;
     Client clients;
     channel *channels;
     std::map<std::string, channel *>chan_map;
@@ -39,8 +48,22 @@ public:
     int server_socket();
     int authenticateClient(std::vector<std::string> c, int listener);
     bool nickname_cmd(std::vector<std::string> &vec, int c_fd);
+    bool kick_memeber(std::vector<std::string> vec, int client_fd);
+    bool topicate_channel(std::vector<std::string> vec, int client_fd);
+    void add_opers(std::vector<std::string> vec, int client_fd);
+    void add_reply(std::string, int cfd, std::string mssg);
+    void limite_reply(std::string name, int oper, std::string);
+    void take_reply(std::string name, int cfd, std::string mssg);
+    bool take_mode(int cfd, std::vector<std::string> vec);
+    bool add_mode(int cfd, std::vector<std::string> vec);
+    void take_opers(std::vector<std::string> vec, int client_fd);
+    void take_pass(std::vector<std::string> vec, int client_fd);
+    void oper_rply(std::string, int, int, std::string);
+    void key_reply(std::string name, int oper, std::string);
     bool change_topic(int, std::vector<std::string>);
     bool user_cmd(std::vector<std::string>vec, int c_fd);
+    void mode_change(std::vector<std::string> vec, int client_fd);
+    std::vector<std::string> splite(std::string str, char delim);
     bool is_identical(std::string nick, int cfd);
     bool is_channelexist(std::string name);
     void removeclients(int cfd, int cfd2);
@@ -56,11 +79,13 @@ public:
     int get_port();
     void set_sfd(int sfd);
     bool reply(std::string name, int, bool flag);
+    bool clinet_invited(std::string name, int client_fd);
     std::string get_pass();
     bool cmd_handler(char *mssg, int listener, int client_fd);
     ~server();
 };
 
+std::string trim(const std::string &str);
 // std::ostream &operator<<(std::ostream & o, std::map<std::string, channel> const& m) {
 
 //     for(std::map<std::string, channel>::const_iterator it = m.begin(); it != m.end(); it++)

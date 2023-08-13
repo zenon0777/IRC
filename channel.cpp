@@ -96,26 +96,6 @@ void channel::remove_member(Client &cl, std::string name)
     this->user_nickname.erase(cl.get_clientfd());
 }
 
-
-bool channel::add_mode(int cfd, std::vector<std::string> vec){
-    if (this->is_operator(vec[1], cfd) == true)
-    {
-        std::string s = vec[2];
-        for (int i =1; i < s.length(); i++)
-        {
-            if (s[i] == 'i')
-                this->is_inviteonly = true;
-            if (s[i] == 't')
-            {
-                this->is_topicated = true;
-            }
-            else
-                return false;
-        }
-    }
-    return true;
-}
-
 std::vector<int> channel::get_operators(void) const{
     return this->_operators_fd;
 }
@@ -154,7 +134,7 @@ bool channel::add_channel(std::string chan_name,Client &cl, bool secure)
         this->topic = "";
         this->is_limited = false;
         this->user_limite = 0;
-        this->nbr_member = 0;
+        this->nbr_member = 1;
         // this->clients_fd = {0};
         this->user_nickname[cl.get_clientfd()] = cl.get_nickname();
         this->chan_members.insert(std::pair<std::string,std::vector<int> >(chan_name, this->clients_fd));

@@ -19,6 +19,7 @@ public:
     bool is_topicated;
     std::string _chan_name;
     std::vector<int>clients_fd;
+    std::vector<int>invited_members;
     std::map<std::string, std::vector<int> > chan_members;
     std::map<int ,std::string> user_nickname;
     std::vector<int>_operators_fd;
