@@ -36,7 +36,7 @@ bool server::is_identical(std::string nick, int c_fd){
 bool server::nickname_cmd(std::vector<std::string> &vec, int c_fd)
 {
     //:los!~d@5c8c-aff4-7127-3c3-1c20.230.197.ip NICK :lsp
-    // allowed chars : ABCDEFGHIJKLMNOPQURSTVWXYZabcdefghijklmnopqurstvwxyz-_[]{}'\'`|
+    // allowed chars : ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz`|^_-{}[]\'
     std::string nick;
     if (vec.size() == 1 && vec[0] == "NICK")
     {
@@ -46,7 +46,24 @@ bool server::nickname_cmd(std::vector<std::string> &vec, int c_fd)
         send(c_fd, buff, strlen(buff), 0);
         return false;
     }
-    else if (cl[c_fd].get_nickname() != " ")
+    std::string nick = vec[1];
+    for(int i= 0; i < nick.length(); i++)
+    {
+        if (strchr("0123456789-", nick[0]))
+        {
+            // :punch.wa.us.dal.net 432 los 135 :Erroneous Nickname
+            std::string err = ":" + cl.at(c_fd).get_host() + " 432 " + cl.at(c_fd).get_nickname() + nick[i];
+            err += " :Erroneous Nickname\r\n";
+            return false;
+        }
+        if (!strchr("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz|^_-{}[]\\", nick[i]))
+        {
+            std::string err = ":" + cl.at(c_fd).get_host() + " 432 " + cl.at(c_fd).get_nickname() + nick[i];
+            err += " :Erroneous Nickname\r\n";
+            return false;
+        }
+    }
+    if (cl[c_fd].get_nickname() != " ")
     {
         if (*vec[1].begin() == ':')
             nick = vec[1].substr(1);
