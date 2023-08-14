@@ -59,6 +59,7 @@ public:
     void take_opers(std::vector<std::string> vec, int client_fd);
     void take_pass(std::vector<std::string> vec, int client_fd);
     void oper_rply(std::string, int, int, std::string);
+    bool valid_nick(int cfd, std::string str);
     void key_reply(std::string name, int oper, std::string);
     bool change_topic(int, std::vector<std::string>);
     bool user_cmd(std::vector<std::string>vec, int c_fd);

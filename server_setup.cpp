@@ -88,9 +88,14 @@ int server::server_setup()
                 std::cout << "bytes read:" << nbytes << std::endl;
                 if (nbytes <= 0)
                 {
+                    // for more optimization we should add signal handler section
+                    
                     // :lop!~s@5c8c-aff4-7127-3c3-1c20.230.197.ip QUIT :Client closed connection
+                    // ERROR :Closing Link: 197.230.30.146 (Client closed connection)
                     if (nbytes == 0)
+                    {
                         std::cout << "client close sesion" << std::endl;
+                    }
                     else
                         perror("error : reciveing mssg");
                     cl.erase(pfds[i].fd);

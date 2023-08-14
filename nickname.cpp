@@ -33,6 +33,28 @@ bool server::is_identical(std::string nick, int c_fd){
     return false;
 }
 
+bool server::valid_nick(int c_fd, std::string str)
+{
+    for(int i= 0; i < str.length(); i++)
+    {
+        if (strchr("0123456789-", str[0]))
+        {
+            // :punch.wa.us.dal.net 432 los 135 :Erroneous Nickname
+            std::string errnouse = ":" + cl.at(c_fd).get_host() + " 432 " + cl.at(c_fd).get_nickname() + str;
+            errnouse += " :Erroneous Nickname\r\n";
+            return false;
+        }
+        if (!strchr("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz|^_-{}[]\\", str[i]))
+        {
+            std::string errnouse = ":" + cl.at(c_fd).get_host() + " 432 " + cl.at(c_fd).get_nickname() + str;
+            errnouse += " :Erroneous Nickname\r\n";
+            return false;
+        }
+    }
+    return true;
+}
+
+
 bool server::nickname_cmd(std::vector<std::string> &vec, int c_fd)
 {
     //:los!~d@5c8c-aff4-7127-3c3-1c20.230.197.ip NICK :lsp
@@ -46,24 +68,9 @@ bool server::nickname_cmd(std::vector<std::string> &vec, int c_fd)
         send(c_fd, buff, strlen(buff), 0);
         return false;
     }
-    std::string nick = vec[1];
-    for(int i= 0; i < nick.length(); i++)
-    {
-        if (strchr("0123456789-", nick[0]))
-        {
-            // :punch.wa.us.dal.net 432 los 135 :Erroneous Nickname
-            std::string err = ":" + cl.at(c_fd).get_host() + " 432 " + cl.at(c_fd).get_nickname() + nick[i];
-            err += " :Erroneous Nickname\r\n";
-            return false;
-        }
-        if (!strchr("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz|^_-{}[]\\", nick[i]))
-        {
-            std::string err = ":" + cl.at(c_fd).get_host() + " 432 " + cl.at(c_fd).get_nickname() + nick[i];
-            err += " :Erroneous Nickname\r\n";
-            return false;
-        }
-    }
-    if (cl[c_fd].get_nickname() != " ")
+    if (valid_nick(c_fd, vec[1])== false)
+        return false;
+    else if (cl[c_fd].get_nickname() != " " && is_identical(vec[1], c_fd) == false)
     {
         if (*vec[1].begin() == ':')
             nick = vec[1].substr(1);

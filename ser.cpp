@@ -13,6 +13,7 @@ bool server::cmd_handler(char *buff, int sfd, int client_fd)
     bool auth = cl.at(client_fd).get_authent();
     vec = splite(cmd, ' ');
     std::cout << cmd << std::endl;
+    if (!strrchr(buff, 13))
     if (!vec.empty() && vec[0] == "PASS")
     {
         if (vec.size() < 2)
