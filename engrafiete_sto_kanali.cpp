@@ -58,27 +58,26 @@ bool server::engrafiete_sto_kanali(std::vector<std::string> vec, int client_fd)
         else if (is_channelexist(chans[i]) == false)
         {
             // NO third param
+            channels = new channel();
             if (key.empty())
             {
-                channels = new channel();
                 if (channels->add_channel(chans[i], cl.at(client_fd), false) == true)
-                {
                     chan_map[chans[i]] = channels;
-                }
                 reply(chans[i], client_fd, true);
             }
             // there is third param and key seted for the channel
             else if (!key.empty() && !key[i].empty())
             {
                 if (channels->add_channel(chans[i], cl.at(client_fd), true) == true)
+                {
                     chan_map[chans[i]] = channels;
-                chan_map[chans[i]]->secure = true;
-                chan_map[chans[i]]->chan_password = key[i];
+                    chan_map[chans[i]]->chan_password = key[i];
+                }
                 reply(chans[i], client_fd, true);
 
             }
             // there is third param and no key to set for this channel
-            else if ((!key.empty() && key[i].empty()) || key.empty())
+            else if ((!key.empty() && key[i].empty()))
                 if (channels->add_channel(chans[i], cl.at(client_fd), false) == true)
                 {
                     chan_map[chans[i]] = channels;
@@ -88,6 +87,7 @@ bool server::engrafiete_sto_kanali(std::vector<std::string> vec, int client_fd)
      // check security of channel
         else if (is_channelexist(chans[i]) == true && chan_map[chans[i]]->secure == false)
         {
+            std::cout << "ERRRROOR\n";
             if (client_exist(chans[i], client_fd) == true)
                 return true;
             else if (chan_map[chans[i]]->is_inviteonly)

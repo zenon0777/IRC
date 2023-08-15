@@ -37,7 +37,7 @@ void server::add_reply(std::string name, int cfd, std::string mssg)
     for (int j =0; j < opers.size(); j++)
     {
         std::string notif = ":" + cl[cfd].get_nickname() + "!~" + cl[cfd].get_username() + "@" + cl[cfd].get_clientip();
-        notif += ".ip MODE " + name + " +o " + cl[cfd].get_nickname() + "\r\n";
+        notif += ".ip MODE " + name + mssg + cl[cfd].get_nickname() + "\r\n";
         const char *rpl = notif.c_str();
         send(opers[j], rpl, strlen(rpl), 0);
     }
@@ -210,23 +210,23 @@ void server::take_pass(std::vector<std::string> vec, int client_fd)
 
 bool server::take_mode(int cfd, std::vector<std::string> vec)
 {
-    if (chan_map[vec[1]]->is_operator(vec[1], cfd) == true)
+    if (is_operator(vec[1], cfd) == true)
     {
         std::string s = vec[2];
-        for (int i =1; i < s.length(); i++)
+        for (int i =1; i <= s.length(); i++)
         {
             if (s[i] == 'i')
             {
                 chan_map[vec[1]]->is_inviteonly = false;
                 take_reply(vec[1], cfd, " -i ");
             }
-            if (s[i] == 'l')
+            else if (s[i] == 'l')
             {
                 chan_map[vec[1]]->is_limited = false;
                 chan_map[vec[1]]->user_limite = 0;
                 take_reply(vec[1], cfd, " -l ");
             }
-            if (s[i] == 't')
+            else if (s[i] == 't')
             {
                 chan_map[vec[1]]->is_topicated = false;
                 take_reply(vec[1], cfd, " -t ");
@@ -235,30 +235,22 @@ bool server::take_mode(int cfd, std::vector<std::string> vec)
                 return false;
         }
     }
-    else
-    {
-        std::string err = ":" + cl[cfd].get_host() + " 482 " + cl[cfd].get_nickname();
-        err += " :You're not channel operator\r\n";
-        const char *buff = err.c_str();
-        send(cfd, buff, strlen(buff), 0);
-        return false;
-    }
     return true;
 }
 
 bool server::add_mode(int cfd, std::vector<std::string> vec)
 {
-    if (chan_map[vec[1]]->is_operator(vec[1], cfd) == true)
+    if (is_operator(vec[1], cfd) == true)
     {
         std::string s = vec[2];
-        for (int i =1; i < s.length(); i++)
+        for (int i =1; i <= s.length(); i++)
         {
             if (s[i] == 'i')
             {
                 chan_map[vec[1]]->is_inviteonly = true;
                 add_reply(vec[1], cfd, " +i ");
             }
-            if (s[i] == 't')
+            else if (s[i] == 't')
             {
                 chan_map[vec[1]]->is_topicated = true;
                 add_reply(vec[1], cfd, " +t ");
@@ -275,6 +267,9 @@ bool server::add_mode(int cfd, std::vector<std::string> vec)
 
 void server::mode_change(std::vector<std::string> vec, int client_fd)
 {
+    if (vec.size() < 3)
+        return ;
+    std::cout << "Still here\n";
     if (is_channelexist(vec[1]) == true)
     {
         if (is_operator(vec[1], client_fd))
@@ -310,6 +305,14 @@ void server::mode_change(std::vector<std::string> vec, int client_fd)
                     take_pass(vec, client_fd);
                 take_mode(client_fd, vec);
             }
+        }
+        else if (is_operator(vec[1], client_fd) == false)
+        {
+            std::string err = ":" + cl[client_fd].get_host() + " 482 " + cl[client_fd].get_nickname();
+            err += " :You're not channel operator\r\n";
+            const char *buff = err.c_str();
+            send(client_fd, buff, strlen(buff), 0);
+            return ;
         }
     }
     else if (is_channelexist(vec[1]) == false)

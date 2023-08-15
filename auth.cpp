@@ -27,7 +27,8 @@ int server::authenticateClient(std::vector<std::string> c, int c_fd)
 }
 
 
-bool server::is_operator(std::string chan_name, int client_fd){
+bool server::is_operator(std::string chan_name, int client_fd)
+{
     std::vector<int>::iterator it;
     std::map<std::string, channel *>::iterator mit;
     for (mit = chan_map.begin(); mit!= chan_map.end(); ++mit){

@@ -25,18 +25,13 @@ channel::channel(const channel &obj)
 //     if (chan_map.at(chan_name).secure)
 // }
 
-bool channel::is_member(int c_fd, std::string chan_name){
-    std::map<std::string, std::vector<int> >::iterator mit;
+bool channel::is_member(int c_fd, std::string chan_name)
+{
     std::vector<int>::const_iterator vit;
-    for (mit = this->chan_members.begin(); mit != this->chan_members.end(); ++mit){
-        if (mit->first == chan_name)
-        {
-            for (vit = mit->second.begin(); vit != mit->second.end(); ++vit)
-            {
-                if (*vit == c_fd)
-                    return true;
-            }
-        }
+    for (vit = this->clients_fd.begin(); vit != this->clients_fd.end(); ++vit)
+    {
+        if (*vit == c_fd)
+            return true;
     }
     return false;
 }
@@ -83,10 +78,27 @@ void channel::remove_member(Client &cl, std::string name)
 {
     std::map<std::string, std::vector<int> >::iterator mit;
     std::vector<int>::const_iterator vit;
+    // for (mit = this->chan_members.begin(); mit != this->chan_members.end(); ++mit)
+    // {
+    //     if (mit->first == name)
+    //     {
+    //         for (vit = this->clients_fd.begin(); vit != this->clients_fd.end(); ++vit)
+    //         {
+    //             if (*vit == cl.get_clientfd())
+    //             {
+    //                 mit->second.erase(vit);
+    //                 break;
+    //             }
+    //         }
+    //     }
+    // }
     for (vit = this->clients_fd.begin(); vit != this->clients_fd.end(); ++vit)
     {
         if (*vit == cl.get_clientfd())
+        {
             this->clients_fd.erase(vit);
+            break;
+        }
     }
     this->user_nickname.erase(cl.get_clientfd());
 }
@@ -117,32 +129,27 @@ void channel::set_topic(std::string str){
 :punch.wa.us.dal.net 353 lop = #there :@lop 
 :punch.wa.us.dal.net 366 lop #there :End of /NAMES list.
 */
-bool channel::add_channel(std::string chan_name,Client &cl, bool secure)
+bool channel::add_channel(std::string _chan_name,Client &cl, bool _secure)
 {
-    if (secure == false)
-    {
-        this->_chan_name = chan_name;
-        this->secure = false;
-        this->is_inviteonly = false;
-        this->is_topic = false;
-        this->is_topicated = true;
-        this->topic = "";
-        this->is_limited = false;
-        this->user_limite = 0;
-        this->nbr_member = 1;
-        // this->clients_fd = {0};
-        this->user_nickname[cl.get_clientfd()] = cl.get_nickname();
-        this->chan_members.insert(std::pair<std::string,std::vector<int> >(chan_name, this->clients_fd));
-        //handle user operator and send all mssg and list cmds to execute
-        this->_operators_fd.push_back(cl.get_clientfd());
-        //print 
-        std::cout << this->_operators_fd[0] << std::endl;
-        if (this->_operators_fd.size() == 2)
-            std::cout << this->_operators_fd[1] << std::endl;
-        std::cout << cl.get_clientip() << std::endl;
-        return true;
-    }
-    return false;
+    this->_chan_name = _chan_name;
+    this->secure = _secure;
+    this->is_inviteonly = false;
+    this->is_topic = false;
+    this->is_topicated = true;
+    this->topic = "";
+    this->is_limited = false;
+    this->user_limite = 0;
+    this->nbr_member = 1;
+    this->user_nickname[cl.get_clientfd()] = cl.get_nickname();
+    // this->chan_members.insert(std::pair<std::string,std::vector<int> >(_chan_name, this->clients_fd));
+    //handle user operator and send all mssg and list cmds to execute
+    this->_operators_fd.push_back(cl.get_clientfd());
+    //print 
+    std::cout << this->_operators_fd[0] << std::endl;
+    if (this->_operators_fd.size() == 2)
+        std::cout << this->_operators_fd[1] << std::endl;
+    std::cout << cl.get_clientip() << std::endl;
+    return true;
 }
 
 

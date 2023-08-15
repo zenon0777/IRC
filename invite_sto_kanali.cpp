@@ -5,7 +5,7 @@ bool server::invite_sto_kanali(std::vector<std::string> vec, int client_fd)
     int cfd = get_clientfd(vec[1]);
     if (cfd < 0)
     {
-        std::string err = ":" + cl[client_fd].get_host() + " 401 " + cl[client_fd].get_nickname() + vec[1] + " :No such nick/channel\r\n";
+        std::string err = ":" + cl[client_fd].get_host() + " 401 " + cl[client_fd].get_nickname() + " " + vec[1] + " :No such nick/channel\r\n";
         const char *buff = err.c_str();
         send(client_fd, buff, strlen(buff), 0);
     }
@@ -56,7 +56,12 @@ bool server::invite_sto_kanali(std::vector<std::string> vec, int client_fd)
             else if (chan_map[vec[2]]->is_limited == true)
             {
                 if (chan_map[vec[2]]->user_limite == chan_map[vec[2]]->nbr_member)
-                    send(client_fd, "Channel reach max of members\r\n", 31, 0);
+                {
+                    std::string err = ":" + cl[client_fd].get_host() + " 471 " + cl[client_fd].get_nickname();
+                    err += " " + vec[2] + " :Cannot join channel (+l)\r\n";
+                    const char *buff = err.c_str();
+                    send(client_fd, buff, strlen(buff), 0);
+                }
                 else
                 {
                     chan_map[vec[2]]->invited_members.push_back(cfd);
@@ -103,7 +108,12 @@ bool server::invite_sto_kanali(std::vector<std::string> vec, int client_fd)
             else if (chan_map[vec[2]]->is_limited == true)
             {
                 if (chan_map[vec[2]]->user_limite == chan_map[vec[2]]->nbr_member)
-                    send(client_fd, "Channel reach max of members\r\n", 31, 0);
+                {
+                    std::string err = ":" + cl[client_fd].get_host() + " 471 " + cl[client_fd].get_nickname();
+                    err += " " + vec[2] + " :Cannot join channel (+l)\r\n";
+                    const char *buff = err.c_str();
+                    send(client_fd, buff, strlen(buff), 0);
+                }
                 else
                 {
                     chan_map[vec[2]]->invited_members.push_back(cfd);

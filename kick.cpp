@@ -3,28 +3,29 @@
 
 void server::kick_rply(std::string name, int oper, int cfd)
 {
-    //ver = oper / lop = member
-    //:ver!~ver@5c8c-aff4-7127-3c3-1c20.230.197.ip KICK #there lop :ver
+    //lop = oper / los = member
+    // :lop!~zen@5c8c-aff4-7127-3c3-1c20.230.197.ip KICK #the los :lop
     std::vector<int> fds = chan_map[name]->get_chan_member();
     for (int i = 0; i < fds.size(); i++)
     {
         std::string notif = ":" + cl[oper].get_nickname() + "!~" + cl[oper].get_username() + "@" + cl[oper].get_clientip();
-        notif += ".ip KICK " + name + cl[cfd].get_nickname() + " :" + cl[oper].get_nickname() + "\r\n";
+        notif += ".ip KICK " + name + " " + cl[cfd].get_nickname() + " :" + cl[oper].get_nickname() + "\r\n";
         const char *rpl = notif.c_str();
         send(fds[i], rpl, strlen(rpl), 0);
     }
     std::vector<int> opers = chan_map[name]->_operators_fd;
     for (int j = 0; j < opers.size(); j++)
     {
-        std::string notif = ":" + cl[oper].get_nickname() + "!~" + cl[oper].get_username() + "@" + cl[oper].get_clientip();
-        notif += ".ip KICK " + name + cl[cfd].get_nickname() + " :" + cl[oper].get_nickname() + "\r\n";
-        const char *rpl = notif.c_str();
-        send(opers[j], rpl, strlen(rpl), 0);
+        std::string notif_oper = ":" + cl[oper].get_nickname() + "!~" + cl[oper].get_username() + "@" + cl[oper].get_clientip();
+        notif_oper += ".ip KICK " + name + " " + cl[cfd].get_nickname() + " :" + cl[oper].get_nickname() + "\r\n";
+        const char *rpl_oper = notif_oper.c_str();
+        send(opers[j], rpl_oper, strlen(rpl_oper), 0);
     }
 }
 
 bool server::kick_memeber(std::vector<std::string> vec, int client_fd)
 {
+    // NEEDMOREPARAMS : error
     if (is_channelexist(vec[1]) == true)
     {
         if (is_operator(vec[1], client_fd) ==  true)
@@ -32,7 +33,7 @@ bool server::kick_memeber(std::vector<std::string> vec, int client_fd)
             int cfd = get_clientfd(vec[2]);
             if (cfd < 0)
             {
-                std::string err = ":" + cl[client_fd].get_host() + " 401 " + cl[client_fd].get_nickname() + vec[1] + " :No such nick/channel\r\n";
+                std::string err = ":" + cl[client_fd].get_host() + " 401 " + cl[client_fd].get_nickname() + " " + vec[1] + " :No such nick/channel\r\n";
                 const char *buff = err.c_str();
                 send(client_fd, buff, strlen(buff), 0);
             }
@@ -50,6 +51,7 @@ bool server::kick_memeber(std::vector<std::string> vec, int client_fd)
             {
                 if (chan_map[vec[1]]->_operators_fd.size() == 1)
                 {
+                    kick_rply(vec[1], client_fd, cfd);
                     std::map<std::string, channel*>::iterator it;
                     for (it = chan_map.begin(); it != chan_map.end(); ++it)
                     {
@@ -60,7 +62,6 @@ bool server::kick_memeber(std::vector<std::string> vec, int client_fd)
                             break;
                         }
                     }
-                    kick_rply(vec[1], client_fd, cfd);
                 }
                 else if (chan_map[vec[1]]->_operators_fd.size() > 1)
                 {
@@ -69,16 +70,16 @@ bool server::kick_memeber(std::vector<std::string> vec, int client_fd)
                     {
                         if (*vit == cfd)
                         {
-                            chan_map[vec[1]]->_operators_fd.erase(vit);
                             kick_rply(vec[1], client_fd, cfd);
+                            chan_map[vec[1]]->_operators_fd.erase(vit);
                         }
                     }
                 }
             }
             else if (chan_map[vec[1]]->is_member(cfd, vec[1]) == true)
             {
-                chan_map[vec[1]]->remove_member(cl.at(cfd), vec[1]);
                 kick_rply(vec[1], client_fd, cfd);
+                chan_map[vec[1]]->remove_member(cl.at(cfd), vec[1]);
             }
         }
         else

@@ -19,7 +19,12 @@ bool server::topicate_channel(std::vector<std::string> vec, int client_fd)
             send(client_fd, buff, strlen(buff), 0);
             return false;
         }
-        if (chan_map[vec[1]]->is_topicated == true)
+        else if (vec.size() == 2)
+        {
+            if (change_topic(client_fd, vec) == false)
+                return false;
+        } 
+        else if (chan_map[vec[1]]->is_topicated == true)
         {
             if (change_topic(client_fd, vec) == false)
                 return false;
@@ -77,6 +82,12 @@ bool server::change_topic(int cfd, std::vector<std::string> vec)
         send(cfd, buff, strlen(buff), 0);
     }
     else if (vec.size() == 1)
-        send(cfd, "ERR_Parameter : ...\n",20, 0);
+    {
+        std::string err = ":" + cl.at(cfd).get_host() + " 461 " + cl.at(cfd).get_nickname();
+        err += " :Not enough parameters\r\n";
+        const char *buff = err.c_str();
+        send(cfd, buff, strlen(buff), 0);
+        return false;
+    }
     return true;
 }

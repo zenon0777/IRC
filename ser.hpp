@@ -46,6 +46,7 @@ public:
     std::map<int , Client> cl;
     server(const char *port, const char *password);
     int server_socket();
+    bool command_parse(std::vector<std::string> vec, int client_fd);
     int authenticateClient(std::vector<std::string> c, int listener);
     bool nickname_cmd(std::vector<std::string> &vec, int c_fd);
     bool kick_memeber(std::vector<std::string> vec, int client_fd);

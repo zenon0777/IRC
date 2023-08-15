@@ -2,18 +2,9 @@
 
 // handl user registration i.e PASS pass / USER username :realname / NICK nickname
 
-
-bool server::cmd_handler(char *buff, int sfd, int client_fd)
+bool server::command_parse(std::vector<std::string> vec, int client_fd)
 {
-    std::string cmd(buff);
-    cmd = trim(cmd);
-    std::istringstream ss(cmd);
-    std::string token;
-    std::vector<std::string> vec;
     bool auth = cl.at(client_fd).get_authent();
-    vec = splite(cmd, ' ');
-    std::cout << cmd << std::endl;
-    if (!strrchr(buff, 13))
     if (!vec.empty() && vec[0] == "PASS")
     {
         if (vec.size() < 2)
@@ -132,6 +123,35 @@ bool server::cmd_handler(char *buff, int sfd, int client_fd)
             send(client_fd, "Need authentification to continue:...\r\n", 40, 0);
             return false;
         }
+    }
+    return true;
+}
+
+
+bool server::cmd_handler(char *buff, int sfd, int client_fd)
+{
+    std::string cmd(buff);
+    cmd = trim(cmd);
+    std::vector<std::string> vec;
+    std::vector<std::string> cmd_1;
+    vec = splite(cmd, ' ');
+    std::cout << cmd << std::endl;
+    if (cmd.find_last_of('\r') != std::string::npos)
+    {
+        cmd_1 = splite(cmd, '\n');
+        for (int i =0; i < cmd_1.size(); i++)
+        {
+            cmd = cmd_1[i];
+            std::cout << cmd << "   ME " << std::endl;
+            vec = splite(cmd, ' ');
+            if (command_parse(vec, client_fd) == false)
+                return false;
+        }
+    }
+    else
+    {
+        if (command_parse(vec, client_fd) == false)
+            return false;
     }
     return true;
 }

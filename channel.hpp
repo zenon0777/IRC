@@ -37,7 +37,7 @@ public:
     std::vector<int> get_operators(void) const;
     bool is_member(int c_fd, std::string chan_name);
     bool is_operator(std::string chan_name, int client_fd);
-    bool add_channel(std::string chan_name,Client &cl, bool secure);
+    bool add_channel(std::string chan_name,Client &cl, bool);
     bool add_client(std::vector<std::string>,Client &cl);
     channel();
     channel(const channel &obj);

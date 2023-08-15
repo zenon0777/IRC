@@ -35,7 +35,7 @@ bool server::is_identical(std::string nick, int c_fd){
 
 bool server::valid_nick(int c_fd, std::string str)
 {
-    for(int i= 0; i < str.length(); i++)
+    for(int i= 0; i <= str.length(); i++)
     {
         if (strchr("0123456789-", str[0]))
         {
