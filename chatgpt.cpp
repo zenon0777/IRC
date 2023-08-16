@@ -30,26 +30,26 @@ void server::parse_response(std::string response, int client_fd)
     // }\
     // }";
     std::cout << response + "\n" << std::endl;
-    // std::vector<std::string> vec = splite(response, ':');
-    // std::vector<std::string> content;
-    // for(size_t i = 0; i < vec.size(); i++)
-    // {
-    //     std::cout << "first \n";
-    //     std::cout << vec[i] << std::endl;
-    //     std::cout << "NEWLINE \n";
-    //     content = splite(vec[i], ',');
-    //     if (content[1] == "\"content\"")
-    //     {
-    //         std::cout << "here" << std::endl;
-    //         content = splite(vec[i + 1], '}');
-    //         std::cout << content[0] << std::endl;
-    //         std::string resp = trim(content[0], "\"} \t");
-    //         resp += "\r\n";
-    //         const char *buff = resp.c_str();
-    //         send(client_fd, buff, strlen(buff), 0);
-    //         break;
-    //     }
-    // }
+    std::vector<std::string> vec = splite(response, ':');
+    std::vector<std::string> content;
+    for(size_t i = 0; i < vec.size(); i++)
+    {
+        std::cout << "first \n";
+        std::cout << vec[i] << std::endl;
+        std::cout << "NEWLINE \n";
+        content = splite(vec[i], ',');
+        if (content[1] == "\"content\"")
+        {
+            std::cout << "here" << std::endl;
+            content = splite(vec[i + 1], '}');
+            std::cout << content[0] << std::endl;
+            std::string resp = trim(content[0], "\"} \t");
+            resp += "\r\n";
+            const char *buff = resp.c_str();
+            send(client_fd, buff, strlen(buff), 0);
+            break;
+        }
+    }
 }
 
 bool server::bot(std::vector<std::string> vec, int client_fd)
