@@ -10,7 +10,7 @@ private:
 public:
     bool secure;
     bool is_inviteonly;
-    int  user_limite;
+    size_t  user_limite;
     bool is_limited;
     size_t nbr_member;
     std::string chan_password;
@@ -26,7 +26,7 @@ public:
 
     std::vector<int> get_chan_member();
     void add_member(Client &, std::string);
-    void remove_member(Client &, std::string);
+    void remove_member(Client &);
     bool add_mode(int cfd, std::vector<std::string> vec);
     bool is_secure(std::string chan_name);
     void set_topicated(bool);
@@ -35,8 +35,8 @@ public:
     std::string get_topic(void) const;
     bool get_topicated(void) const;
     std::vector<int> get_operators(void) const;
-    bool is_member(int c_fd, std::string chan_name);
-    bool is_operator(std::string chan_name, int client_fd);
+    bool is_member(int c_fd);
+    bool is_operator(int client_fd);
     bool add_channel(std::string chan_name,Client &cl, bool);
     bool add_client(std::vector<std::string>,Client &cl);
     channel();

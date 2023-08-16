@@ -40,6 +40,7 @@ void *get_in_addr(struct sockaddr *sa) {
 
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
+
 int server::server_setup()
 {
     struct sockaddr_storage client;
@@ -66,7 +67,7 @@ int server::server_setup()
                 perror("eroor");
             pfds.push_back((struct pollfd){cfd, POLLIN, nfds++});
         }
-        for (int i = 0; i < pfds.size(); ++i)
+        for (size_t i = 0; i < pfds.size(); ++i)
         {
             if (pfds[i].revents & POLLIN)
             {
@@ -141,7 +142,7 @@ int server::server_setup()
                     cl.at(pfds[i].fd).set_cfd(pfds[i].fd);
                     cl.at(pfds[i].fd).set_host(client_hostname);
                     cl.at(pfds[i].fd).set_clientip(ip_address);
-                    cmd_handler(buff, sfd, pfds[i].fd);
+                    cmd_handler(buff, pfds[i].fd);
                     continue;
                 }
                 continue;
@@ -153,7 +154,7 @@ int server::server_setup()
     {
         delete chan_map[it->first];
         chan_map.erase(it);
-        ++it;
+        break;
     }
     close(sfd);
     return 0;

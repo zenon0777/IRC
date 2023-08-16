@@ -5,12 +5,12 @@ bool server::client_exist(std::string name, int client_fd)
 {
     std::vector<int> fd = chan_map[name]->clients_fd;
     std::vector<int> opers = chan_map[name]->_operators_fd;
-    for (int i = 0; i < fd.size(); i++)
+    for (size_t i = 0; i < fd.size(); i++)
     {
         if (client_fd == fd[i])
             return true;
     }
-    for (int i = 0; i < opers.size(); i++)
+    for (size_t i = 0; i < opers.size(); i++)
     {
         if (client_fd == opers[i])
             return true;
@@ -21,7 +21,7 @@ bool server::client_exist(std::string name, int client_fd)
 bool server::clinet_invited(std::string name, int client_fd)
 {
     std::vector<int> fd = chan_map[name]->invited_members;
-    for (int i = 0; i < fd.size(); i++)
+    for (size_t i = 0; i < fd.size(); i++)
     {
         if (client_fd == fd[i])
             return true;
@@ -46,7 +46,7 @@ bool server::engrafiete_sto_kanali(std::vector<std::string> vec, int client_fd)
     {
         key = splite(vec[2], ',');
     }
-    for (int i = 0; i < chans.size(); i++)
+    for (size_t i = 0; i < chans.size(); i++)
     {
         if (*chans[i].begin() != '#' && *chans[i].begin() != '&')
         {
@@ -257,7 +257,7 @@ bool server::reply(std::string name, int cfd, bool flag)
     std::string chan_members;
     if (fds.size() >= 1)
     {
-        for (int i = 0; i < fds.size(); i++)
+        for (size_t i = 0; i < fds.size(); i++)
         {
             std::string tmp;
             tmp = cl[fds[i]].get_nickname();
@@ -272,7 +272,7 @@ bool server::reply(std::string name, int cfd, bool flag)
     }
     std::vector<int> opers = chan_map[name]->_operators_fd;
     std::string chan_opers;
-    for (int j =0; j < opers.size(); j++)
+    for (size_t j =0; j < opers.size(); j++)
     {
         std::string tmpl;
         tmpl = cl[opers[j]].get_nickname();

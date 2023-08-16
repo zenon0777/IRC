@@ -17,7 +17,7 @@ bool server::invite_sto_kanali(std::vector<std::string> vec, int client_fd)
     }
     else if (is_channelexist(vec[2]) == true && cfd > 0)
     {
-        if (chan_map[vec[2]]->is_member(client_fd, vec[2]) == false && chan_map[vec[2]]->is_operator(vec[2], client_fd) == false)
+        if (chan_map[vec[2]]->is_member(client_fd) == false && chan_map[vec[2]]->is_operator(client_fd) == false)
         {
             std::string err = ":" + cl[client_fd].get_host() + " 442 " + cl[client_fd].get_nickname();
             err += " :You're not on that channel\r\n";
@@ -25,7 +25,7 @@ bool server::invite_sto_kanali(std::vector<std::string> vec, int client_fd)
             send(client_fd, buff, strlen(buff), 0);
             return false;
         }
-        else if (chan_map[vec[2]]->is_member(cfd, vec[2]) == true || is_operator(vec[2], cfd) == true)
+        else if (chan_map[vec[2]]->is_member(cfd) == true || is_operator(vec[2], cfd) == true)
         {
             std::string err = ":" + cl[client_fd].get_host() + " 443 " + cl[client_fd].get_nickname() + " " + cl[cfd].get_nickname()\
             + " " + vec[2];

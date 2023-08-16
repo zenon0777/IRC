@@ -23,7 +23,7 @@ bool server::handle_recievers(std::vector<std::string> vec, int c_fd)
         nicks.push_back(token);}
     int cfd = -1;
     std::vector<std::string>::const_iterator it;
-    for (int i = 2; i < vec.size(); i++){
+    for (size_t i = 2; i < vec.size(); i++){
         mssg += vec[i];
         if (i < vec.size() - 1)
             mssg += " ";
@@ -37,7 +37,7 @@ bool server::handle_recievers(std::vector<std::string> vec, int c_fd)
         return false;
     }
     //:punch.wa.us.dal.net 401 polsxf loskdscvfd :No such nick/channel
-    for(int i = 0; i < nicks.size(); i++)
+    for(size_t i = 0; i < nicks.size(); i++)
     {
         if (*nicks[i].begin() == '#')
         {
@@ -45,7 +45,7 @@ bool server::handle_recievers(std::vector<std::string> vec, int c_fd)
             if (is_channelexist(nicks[i]) == true)
             {
                 std::vector<int>::iterator vit;
-                for(int j = 0; j < chan_map[nicks[i]]->clients_fd.size(); j++)
+                for(size_t j = 0; j < chan_map[nicks[i]]->clients_fd.size(); j++)
                 {
                     std::cout << chan_map[nicks[i]]->clients_fd[j] << std::endl;
                     if (chan_map[nicks[i]]->clients_fd[j] > 0)
@@ -57,7 +57,7 @@ bool server::handle_recievers(std::vector<std::string> vec, int c_fd)
                         send(c_fd, buff, strlen(buff), 0);
                     }
                 }
-                for(int k = 0; k < chan_map[nicks[i]]->_operators_fd.size(); k++)
+                for(size_t k = 0; k < chan_map[nicks[i]]->_operators_fd.size(); k++)
                 {
                     std::cout << chan_map[nicks[i]]->_operators_fd[k] << std::endl;
                     if (chan_map[nicks[i]]->_operators_fd[k] > 0)

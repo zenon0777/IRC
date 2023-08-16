@@ -69,6 +69,20 @@ bool server::command_parse(std::vector<std::string> vec, int client_fd)
             if (engrafiete_sto_kanali(vec, client_fd) == false)
                 return false;
         }
+        else if (vec[0] == "/chat" && auth== true)
+        {
+            if (cl[client_fd].is_registred < 2)
+            {
+                //:punch.wa.us.dal.net 451 * join :You must finish connecting with another nickname first.
+                std::string notif = ":" + cl[client_fd].get_host() + " 451 * JOIN :You have not registered\r\n";
+                const char *rpl = notif.c_str();
+                send(client_fd, rpl, strlen(rpl), 0);
+                return false;
+            }
+            if (bot(vec, client_fd) == false)
+                return false;
+            // parse_response(vec[0], client_fd);
+        }
         else if (vec[0] == "INVITE" && auth == true)
         {
             if (cl[client_fd].is_registred < 2)
@@ -128,10 +142,10 @@ bool server::command_parse(std::vector<std::string> vec, int client_fd)
 }
 
 
-bool server::cmd_handler(char *buff, int sfd, int client_fd)
+bool server::cmd_handler(char *buff, int client_fd)
 {
     std::string cmd(buff);
-    cmd = trim(cmd);
+    cmd = trim(cmd, " \t\n\r");
     std::vector<std::string> vec;
     std::vector<std::string> cmd_1;
     vec = splite(cmd, ' ');
@@ -139,7 +153,7 @@ bool server::cmd_handler(char *buff, int sfd, int client_fd)
     if (cmd.find_last_of('\r') != std::string::npos)
     {
         cmd_1 = splite(cmd, '\n');
-        for (int i =0; i < cmd_1.size(); i++)
+        for (size_t i =0; i < cmd_1.size(); i++)
         {
             cmd = cmd_1[i];
             std::cout << cmd << "   ME " << std::endl;

@@ -1,12 +1,12 @@
 #include"ser.hpp"
 
-std::string trim(const std::string &str)
+std::string trim(const std::string &str, std::string set)
 {
-    size_t first = str.find_first_not_of(" \t\n\r");
+    size_t first = str.find_first_not_of(set);
     if (first == std::string::npos)
     {
         return "";}
-    size_t last = str.find_last_not_of(" \t\n\r");
+    size_t last = str.find_last_not_of(set);
     return str.substr(first, last - first + 1);
 }
 
@@ -17,7 +17,7 @@ std::vector<std::string> server::splite(std::string str, char delim)
     std::vector<std::string> vec;
     while (std::getline(ss, token, delim))
     {
-        token = trim(token);
+        token = trim(token, " \t\n\r");
         vec.push_back(token);
     }
     return vec;

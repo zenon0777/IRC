@@ -3,7 +3,7 @@
 void server::oper_rply(std::string name, int oper, int cfd, std::string mssg)
 {
     std::vector<int> fds = chan_map[name]->get_chan_member();
-    for (int i = 0; i < fds.size(); i++)
+    for (size_t i = 0; i < fds.size(); i++)
     {
         std::string notif = ":" + cl[oper].get_nickname() + "!~" + cl[oper].get_username() + "@" + cl[oper].get_clientip();
         notif += ".ip MODE " + name + mssg + cl[cfd].get_nickname() + "\r\n";
@@ -12,7 +12,7 @@ void server::oper_rply(std::string name, int oper, int cfd, std::string mssg)
     }
     std::vector<int> opers = chan_map[name]->_operators_fd;
     std::string chan_opers;
-    for (int j =0; j < opers.size(); j++)
+    for (size_t j =0; j < opers.size(); j++)
     {
         std::string notif = ":" + cl[oper].get_nickname() + "!~" + cl[oper].get_username() + "@" + cl[oper].get_clientip();
         notif += ".ip MODE " + name + mssg + cl[cfd].get_nickname() + "\r\n";
@@ -25,7 +25,7 @@ void server::add_reply(std::string name, int cfd, std::string mssg)
 {
     //:losf!~sd@5c8c-aff4-7127-3c3-1c20.230.197.ip MODE #top +i 
     std::vector<int> fds = chan_map[name]->get_chan_member();
-    for (int i = 0; i < fds.size(); i++)
+    for (size_t i = 0; i < fds.size(); i++)
     {
         std::string notif = ":" + cl[cfd].get_nickname() + "!~" + cl[cfd].get_username() + "@" + cl[cfd].get_clientip();
         notif += ".ip MODE " + name + mssg + "\r\n";
@@ -34,7 +34,7 @@ void server::add_reply(std::string name, int cfd, std::string mssg)
     }
     std::vector<int> opers = chan_map[name]->_operators_fd;
     std::string chan_opers;
-    for (int j =0; j < opers.size(); j++)
+    for (size_t j =0; j < opers.size(); j++)
     {
         std::string notif = ":" + cl[cfd].get_nickname() + "!~" + cl[cfd].get_username() + "@" + cl[cfd].get_clientip();
         notif += ".ip MODE " + name + mssg + cl[cfd].get_nickname() + "\r\n";
@@ -48,7 +48,7 @@ void server::take_reply(std::string name, int cfd, std::string mssg)
 {
     //:losf!~sd@5c8c-aff4-7127-3c3-1c20.230.197.ip MODE #top +i 
     std::vector<int> fds = chan_map[name]->get_chan_member();
-    for (int i = 0; i < fds.size(); i++)
+    for (size_t i = 0; i < fds.size(); i++)
     {
         std::string notif = ":" + cl[cfd].get_nickname() + "!~" + cl[cfd].get_username() + "@" + cl[cfd].get_clientip();
         notif += ".ip MODE " + name + mssg + "\r\n";
@@ -57,7 +57,7 @@ void server::take_reply(std::string name, int cfd, std::string mssg)
     }
     std::vector<int> opers = chan_map[name]->_operators_fd;
     std::string chan_opers;
-    for (int j =0; j < opers.size(); j++)
+    for (size_t j =0; j < opers.size(); j++)
     {
         std::string notif = ":" + cl[cfd].get_nickname() + "!~" + cl[cfd].get_username() + "@" + cl[cfd].get_clientip();
         notif += ".ip MODE " + name + mssg + "\r\n";
@@ -77,7 +77,7 @@ void server::take_reply(std::string name, int cfd, std::string mssg)
 void server::limite_reply(std::string name, int oper, std::string limite)
 {
     std::vector<int> fds = chan_map[name]->get_chan_member();
-    for (int i = 0; i < fds.size(); i++)
+    for (size_t i = 0; i < fds.size(); i++)
     {
         std::string notif = ":" + cl[oper].get_nickname() + "!~" + cl[oper].get_username() + "@" + cl[oper].get_clientip();
         notif += ".ip MODE " + name + " +l  " + limite + "\r\n";
@@ -86,7 +86,7 @@ void server::limite_reply(std::string name, int oper, std::string limite)
     }
     std::vector<int> opers = chan_map[name]->_operators_fd;
     std::string chan_opers;
-    for (int j =0; j < opers.size(); j++)
+    for (size_t j =0; j < opers.size(); j++)
     {
         std::string notif = ":" + cl[oper].get_nickname() + "!~" + cl[oper].get_username() + "@" + cl[oper].get_clientip();
         notif += ".ip MODE " + name + " +l  " + limite + "\r\n";
@@ -98,7 +98,7 @@ void server::limite_reply(std::string name, int oper, std::string limite)
 void server::key_reply(std::string name, int oper, std::string mssg)
 {
     std::vector<int> fds = chan_map[name]->get_chan_member();
-    for (int i = 0; i < fds.size(); i++)
+    for (size_t i = 0; i < fds.size(); i++)
     {
         std::string notif = ":" + cl[oper].get_nickname() + "!~" + cl[oper].get_username() + "@" + cl[oper].get_clientip();
         notif += ".ip MODE " + name + mssg + chan_map[name]->chan_password + "\r\n";
@@ -107,7 +107,7 @@ void server::key_reply(std::string name, int oper, std::string mssg)
     }
     std::vector<int> opers = chan_map[name]->_operators_fd;
     std::string chan_opers;
-    for (int j =0; j < opers.size(); j++)
+    for (size_t j =0; j < opers.size(); j++)
     {
         std::string notif = ":" + cl[oper].get_nickname() + "!~" + cl[oper].get_username() + "@" + cl[oper].get_clientip();
         notif += ".ip MODE " + name + mssg + chan_map[name]->chan_password + "\r\n";
@@ -126,7 +126,7 @@ void server::take_opers(std::vector<std::string> vec, int client_fd)
         const char *buff = err.c_str();
         send(client_fd, buff, strlen(buff), 0);
     }
-    if (chan_map[vec[1]]->is_operator(vec[1], cfd) == true && chan_map[vec[1]]->is_operator(vec[1], client_fd))
+    if (chan_map[vec[1]]->is_operator(cfd) == true && chan_map[vec[1]]->is_operator(client_fd))
     {
         std::vector<int>::iterator vit;
         for (vit = chan_map[vec[1]]->_operators_fd.begin(); vit != chan_map[vec[1]]->_operators_fd.end(); ++vit)
@@ -140,8 +140,8 @@ void server::take_opers(std::vector<std::string> vec, int client_fd)
         chan_map[vec[1]]->clients_fd.push_back(cfd);
         oper_rply(vec[1], client_fd, cfd, " -o ");
     }
-    else if (cfd < 0 || (chan_map[vec[1]]->is_member(cfd, vec[1]) == false && \
-    chan_map[vec[1]]->is_operator(vec[1], cfd) == false))
+    else if (cfd < 0 || (chan_map[vec[1]]->is_member(cfd) == false && \
+    chan_map[vec[1]]->is_operator(cfd) == false))
     {
         // :punch.wa.us.dal.net 441 losp posx #top :They aren't on that channel
         std::string err = ":" + cl[client_fd].get_host() + " 441 " + cl[client_fd].get_nickname() + vec[3] + vec[1] \
@@ -149,7 +149,7 @@ void server::take_opers(std::vector<std::string> vec, int client_fd)
         const char *buff = err.c_str();
         send(client_fd, buff, strlen(buff), 0);
     }
-    else if (chan_map[vec[1]]->is_operator(vec[1], client_fd) == false)
+    else if (chan_map[vec[1]]->is_operator(client_fd) == false)
     {
         std::string err = ":" + cl[cfd].get_host() + " 482 " + cl[cfd].get_nickname();
         err += " :You're not channel operator\r\n";
@@ -169,7 +169,7 @@ void server::add_opers(std::vector<std::string> vec, int client_fd)
         const char *buff = err.c_str();
         send(client_fd, buff, strlen(buff), 0);
     }
-    if (chan_map[vec[1]]->is_member(cfd, vec[1]) == true && chan_map[vec[1]]->is_operator(vec[1], client_fd))
+    if (chan_map[vec[1]]->is_member(cfd) == true && chan_map[vec[1]]->is_operator(client_fd))
     {
         std::vector<int>::iterator vit;
         for (vit = chan_map[vec[1]]->clients_fd.begin(); vit != chan_map[vec[1]]->clients_fd.end(); ++vit)
@@ -183,15 +183,15 @@ void server::add_opers(std::vector<std::string> vec, int client_fd)
         chan_map[vec[1]]->_operators_fd.push_back(cfd);
         oper_rply(vec[1], client_fd, cfd, " +o ");
     }
-    else if (cfd < 0 || (chan_map[vec[1]]->is_member(cfd, vec[1]) == false && \
-    chan_map[vec[1]]->is_operator(vec[1], cfd) == false))
+    else if (cfd < 0 || (chan_map[vec[1]]->is_member(cfd) == false && \
+    chan_map[vec[1]]->is_operator(cfd) == false))
     {
         std::string err = ":" + cl[client_fd].get_host() + " 441 " + cl[client_fd].get_nickname() + vec[3] + vec[1] \
         + " :They aren't on that channel\r\n";
         const char *buff = err.c_str();
         send(client_fd, buff, strlen(buff), 0);
     }
-    else if (chan_map[vec[1]]->is_operator(vec[1], client_fd) == false)
+    else if (chan_map[vec[1]]->is_operator(client_fd) == false)
     {
         std::string err = ":" + cl[cfd].get_host() + " 482 " + cl[cfd].get_nickname();
         err += " :You're not channel operator\r\n";
@@ -213,7 +213,7 @@ bool server::take_mode(int cfd, std::vector<std::string> vec)
     if (is_operator(vec[1], cfd) == true)
     {
         std::string s = vec[2];
-        for (int i =1; i <= s.length(); i++)
+        for (size_t i =1; i <= s.length(); i++)
         {
             if (s[i] == 'i')
             {
@@ -243,7 +243,7 @@ bool server::add_mode(int cfd, std::vector<std::string> vec)
     if (is_operator(vec[1], cfd) == true)
     {
         std::string s = vec[2];
-        for (int i =1; i <= s.length(); i++)
+        for (size_t i =1; i <= s.length(); i++)
         {
             if (s[i] == 'i')
             {

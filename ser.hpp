@@ -26,10 +26,14 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <poll.h>
+#include<curl/curl.h>
 #include "channel.hpp"
 
 #define g_max_clients 10
-
+// usage = 0 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
+// const std::string API_KEY = "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";
+const std::string API_KEY = "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";
+const std::string API_URL = "https://api.openai.com/v1/chat/completions";
 class server
 {
 private:
@@ -51,6 +55,7 @@ public:
     bool nickname_cmd(std::vector<std::string> &vec, int c_fd);
     bool kick_memeber(std::vector<std::string> vec, int client_fd);
     bool topicate_channel(std::vector<std::string> vec, int client_fd);
+    bool bot(std::vector<std::string> vec, int client_fd);
     void add_opers(std::vector<std::string> vec, int client_fd);
     void add_reply(std::string, int cfd, std::string mssg);
     void limite_reply(std::string name, int oper, std::string);
@@ -84,11 +89,13 @@ public:
     bool reply(std::string name, int, bool flag);
     bool clinet_invited(std::string name, int client_fd);
     std::string get_pass();
-    bool cmd_handler(char *mssg, int listener, int client_fd);
+    bool cmd_handler(char *mssg, int client_fd);
+    void parse_response(std::string response, int);
     ~server();
 };
 
-std::string trim(const std::string &str);
+
+std::string trim(const std::string &str, std::string set);
 // std::ostream &operator<<(std::ostream & o, std::map<std::string, channel> const& m) {
 
 //     for(std::map<std::string, channel>::const_iterator it = m.begin(); it != m.end(); it++)

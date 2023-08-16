@@ -47,7 +47,6 @@ public:
     std::string get_nickname() const;
     bool get_authent() const;
     bool client_reg(std::string cmd, std::string parm);
-    Client(bool is_connected, std::string nick, std::string user);
     ~Client();
 };
 

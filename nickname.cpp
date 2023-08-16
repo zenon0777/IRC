@@ -35,7 +35,7 @@ bool server::is_identical(std::string nick, int c_fd){
 
 bool server::valid_nick(int c_fd, std::string str)
 {
-    for(int i= 0; i <= str.length(); i++)
+    for(size_t i= 0; i <= str.length(); i++)
     {
         if (strchr("0123456789-", str[0]))
         {
@@ -81,7 +81,7 @@ bool server::nickname_cmd(std::vector<std::string> &vec, int c_fd)
         const char *buff = err.c_str();
         send(c_fd, buff, strlen(buff), 0);
         std::map<int,Client>::iterator it = cl.find(c_fd);
-        it->second.set_nickname(trim(nick));
+        it->second.set_nickname(trim(nick, " \t\n\r"));
     }
     else if (is_identical(vec[1], c_fd) == false)
     {
@@ -90,7 +90,7 @@ bool server::nickname_cmd(std::vector<std::string> &vec, int c_fd)
         else
             nick = vec[1];
         std::map<int,Client>::iterator it = cl.find(c_fd);
-        it->second.set_nickname(trim(nick));
+        it->second.set_nickname(trim(nick, " \t\n\r"));
         it->second.is_registred += 1;
     }
     else

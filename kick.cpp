@@ -6,7 +6,7 @@ void server::kick_rply(std::string name, int oper, int cfd)
     //lop = oper / los = member
     // :lop!~zen@5c8c-aff4-7127-3c3-1c20.230.197.ip KICK #the los :lop
     std::vector<int> fds = chan_map[name]->get_chan_member();
-    for (int i = 0; i < fds.size(); i++)
+    for (size_t i = 0; i < fds.size(); i++)
     {
         std::string notif = ":" + cl[oper].get_nickname() + "!~" + cl[oper].get_username() + "@" + cl[oper].get_clientip();
         notif += ".ip KICK " + name + " " + cl[cfd].get_nickname() + " :" + cl[oper].get_nickname() + "\r\n";
@@ -14,7 +14,7 @@ void server::kick_rply(std::string name, int oper, int cfd)
         send(fds[i], rpl, strlen(rpl), 0);
     }
     std::vector<int> opers = chan_map[name]->_operators_fd;
-    for (int j = 0; j < opers.size(); j++)
+    for (size_t j = 0; j < opers.size(); j++)
     {
         std::string notif_oper = ":" + cl[oper].get_nickname() + "!~" + cl[oper].get_username() + "@" + cl[oper].get_clientip();
         notif_oper += ".ip KICK " + name + " " + cl[cfd].get_nickname() + " :" + cl[oper].get_nickname() + "\r\n";
@@ -37,8 +37,8 @@ bool server::kick_memeber(std::vector<std::string> vec, int client_fd)
                 const char *buff = err.c_str();
                 send(client_fd, buff, strlen(buff), 0);
             }
-            else if (chan_map[vec[1]]->is_member(cfd, vec[1]) == false && \
-            chan_map[vec[1]]->is_operator(vec[1], cfd) == false)
+            else if (chan_map[vec[1]]->is_member(cfd) == false && \
+            chan_map[vec[1]]->is_operator(cfd) == false)
             {
                 // :punch.wa.us.dal.net 441 losp posx #top :They aren't on that channel
                 std::string err = ":" + cl[client_fd].get_host() + " 441 " + cl[client_fd].get_nickname() + vec[3] + vec[1] \
@@ -47,7 +47,7 @@ bool server::kick_memeber(std::vector<std::string> vec, int client_fd)
                 send(client_fd, buff, strlen(buff), 0);
                 return false;
             }
-            else if (chan_map[vec[1]]->is_operator(vec[1], cfd) == true)
+            else if (chan_map[vec[1]]->is_operator(cfd) == true)
             {
                 if (chan_map[vec[1]]->_operators_fd.size() == 1)
                 {
@@ -76,10 +76,10 @@ bool server::kick_memeber(std::vector<std::string> vec, int client_fd)
                     }
                 }
             }
-            else if (chan_map[vec[1]]->is_member(cfd, vec[1]) == true)
+            else if (chan_map[vec[1]]->is_member(cfd) == true)
             {
                 kick_rply(vec[1], client_fd, cfd);
-                chan_map[vec[1]]->remove_member(cl.at(cfd), vec[1]);
+                chan_map[vec[1]]->remove_member(cl.at(cfd));
             }
         }
         else

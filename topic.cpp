@@ -11,7 +11,7 @@ bool server::topicate_channel(std::vector<std::string> vec, int client_fd)
     }
     if (is_channelexist(vec[1]) == true)
     {
-        if (is_operator(vec[1], client_fd) == false && chan_map[vec[1]]->is_member(client_fd, vec[1]) ==  false)
+        if (is_operator(vec[1], client_fd) == false && chan_map[vec[1]]->is_member(client_fd) ==  false)
         {
             std::string err = ":" + cl[client_fd].get_host() + " 442 " + cl[client_fd].get_nickname();
             err += " :You're not on that channel\r\n\r\n";

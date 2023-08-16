@@ -1,9 +1,5 @@
 #include"client.hpp"
 
-Client::Client(bool is_connected, std::string nick, std::string user) : is_authentifcated(is_connected)\
-,nickname(nick), username(user)
-{
-}
 
 Client::Client()
 {
