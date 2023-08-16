@@ -32,7 +32,7 @@
 #define g_max_clients 10
 // usage = 0 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
 // const std::string API_KEY = "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";
-const std::string API_KEY = "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";
+const std::string API_KEY = "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";
 const std::string API_URL = "https://api.openai.com/v1/chat/completions";
 class server
 {

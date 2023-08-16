@@ -6,50 +6,27 @@ size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
 }
 
 
+std::string extractJsonValue(const std::string& json, const std::string& key) {
+    size_t keyPos = json.find("\"" + key + "\":");
+    if (keyPos != std::string::npos) {
+        size_t valueStart = json.find("\"", keyPos + key.length() + 3) + 1;
+        size_t valueEnd = json.find("\"", valueStart);
+        return json.substr(valueStart, valueEnd - valueStart);
+    }
+    return "";
+}
+
 void server::parse_response(std::string response, int client_fd)
 {
-    // response = "Bots response: \
-    // {\
-    // \"id\": \"chatcmpl-7oAsjq8WnEjOmsqu2jEGXPpeZKUmA\",\
-    // \"object\": \"chat.completion\",\
-    // \"created\": 1692192585,\
-    // \"model\": \"gpt-3.5-turbo-0613\",\
-    // \"choices\": [\
-    //     {\
-    //     \"index\": 0,\
-    //     \"message\": {\
-    //         \"role\": \"assistant\",\
-    //         \"content\": \"In the realm of hearts, where feelings thrive,\nLove dances with grace, making souls come alive.\nIt whispers softly, in gentle melodic rhyme,\nA poem of love, enduring through time.\n\nLove is a tapestry, woven with care,\nThreads\"},\
-    //     \"finish_reason\": \"stop\"\
-    //     }\
-    // ],\
-    // \"usage\": {\
-    //     \"prompt_tokens\": 9,\
-    //     \"completion_tokens\": 9,\
-    //     \"total_tokens\": 18\
-    // }\
-    // }";
     std::cout << response + "\n" << std::endl;
-    std::vector<std::string> vec = splite(response, ':');
-    std::vector<std::string> content;
-    for(size_t i = 0; i < vec.size(); i++)
-    {
-        std::cout << "first \n";
-        std::cout << vec[i] << std::endl;
-        std::cout << "NEWLINE \n";
-        content = splite(vec[i], ',');
-        if (content[1] == "\"content\"")
-        {
-            std::cout << "here" << std::endl;
-            content = splite(vec[i + 1], '}');
-            std::cout << content[0] << std::endl;
-            std::string resp = trim(content[0], "\"} \t");
-            resp += "\r\n";
-            const char *buff = resp.c_str();
-            send(client_fd, buff, strlen(buff), 0);
-            break;
-        }
-    }
+    std::string resp = extractJsonValue(response, "content");
+    // size_t linepos = resp.find("\n");
+    // while(linepos != std::string::npos){
+    //     resp.replace();
+    // }
+    resp += "\r\n";
+    const char *buff = resp.c_str();
+    send(client_fd, buff, strlen(buff), 0);
 }
 
 bool server::bot(std::vector<std::string> vec, int client_fd)
