@@ -83,7 +83,6 @@ int server::server_setup()
                     strncpy(client_hostname, remoteIP, NI_MAXHOST);
                 }
                 std::cout << "Client connected from IP: " << ip_address << " Hostname: " << client_hostname << std::endl;
-                
                 bzero(buff, sizeof(buff));
                 size_t nbytes = recv(pfds[i].fd, (void *)buff, sizeof(buff), 0);
                 std::cout << "bytes read:" << nbytes << std::endl;
@@ -136,7 +135,7 @@ int server::server_setup()
                     --i;
                     continue;
                 }
-                else
+                else if (nbytes > 0)
                 {
                     cl.insert(std::pair<int,Client>(pfds[i].fd, clients));
                     cl.at(pfds[i].fd).set_cfd(pfds[i].fd);
@@ -153,9 +152,8 @@ int server::server_setup()
     for (it= chan_map.begin(); it !=chan_map.end(); ++it)
     {
         delete chan_map[it->first];
-        chan_map.erase(it);
-        break;
     }
+    chan_map.clear();
     close(sfd);
     return 0;
 }

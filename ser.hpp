@@ -30,9 +30,7 @@
 #include "channel.hpp"
 
 #define g_max_clients 10
-// usage = 0 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
-// const std::string API_KEY = "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";
-const std::string API_KEY = "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";
+const std::string API_KEY = "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";
 const std::string API_URL = "https://api.openai.com/v1/chat/completions";
 class server
 {
@@ -85,6 +83,7 @@ public:
     bool engrafiete_sto_kanali(std::vector<std::string> vec, int client_fd);
     bool client_exist(std::string name, int client_fd);
     int get_port();
+    void sendWelcomeMessage(int clientSocket, const std::string& nickname, const std::string& username);
     void set_sfd(int sfd);
     bool reply(std::string name, int, bool flag);
     bool clinet_invited(std::string name, int client_fd);

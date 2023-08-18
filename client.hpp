@@ -29,6 +29,8 @@ private:
     std::string client_ip;
     char *mssg;
 public:
+    int g_msg;
+    bool welcome;
     int        is_registred;
     Client();
     Client(const Client &obj);

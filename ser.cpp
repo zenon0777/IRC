@@ -2,6 +2,29 @@
 
 // handl user registration i.e PASS pass / USER username :realname / NICK nickname
 
+void server::sendWelcomeMessage(int clientSocket, const std::string& nickname, const std::string& username)
+{
+
+    std::string welcomeMessage = "001 " + nickname + " :Welcome to the ZenOn IRC-like server, " + nickname + "!\r\n";
+    welcomeMessage += "001 " + nickname + " :Your username is: " + username + "\r\n";
+    welcomeMessage += "001 " + nickname + " :  ______  _____   _   _   _____   _   _   \r\n";
+    welcomeMessage += "001 " + nickname + " : |___  / |  ___| | \\ | | |  _  | | \\ | | \r\n";
+    welcomeMessage += "001 " + nickname + " :    / /  | |__   |  \\| | | | | | |  \\| | \r\n";
+    welcomeMessage += "001 " + nickname + " :   / /   |  __|  | . ` | | | | | | . ` | \r\n";
+    welcomeMessage += "001 " + nickname + " : ./ /___ | |___  | |\\  | \\ \\_/ / | |\\  | \r\n";
+    welcomeMessage += "001 " + nickname + " : \\_____/ \\____/  \\_| \\_/  \\___/  \\_| \\_/ \r\n";
+
+
+    std::string reply = welcomeMessage;
+    reply += ":" + cl[clientSocket].get_host() + " 002 " + cl[clientSocket].get_nickname();
+    reply += " :Your host is " + cl[clientSocket].get_host() + ", running version 1.0\n";
+    reply += ":" + cl[clientSocket].get_host() + " 003 " + cl[clientSocket].get_nickname() + " :This server was created\n";
+    reply += ":" + cl[clientSocket].get_host() + " 004 " + cl[clientSocket].get_nickname();
+    reply += " " + cl[clientSocket].get_host() + " 1.0\n";
+    const char *buff = reply.c_str();
+    send(clientSocket, buff, strlen(buff), 0);
+}
+
 bool server::command_parse(std::vector<std::string> vec, int client_fd)
 {
     bool auth = cl.at(client_fd).get_authent();
@@ -16,7 +39,9 @@ bool server::command_parse(std::vector<std::string> vec, int client_fd)
             return false;
         }
         int flag = authenticateClient(vec, client_fd);
-        if (flag == 1)
+        if (flag == 0)
+            cl.at(client_fd).g_msg = 1; 
+        else if (flag == 1)
         {
             std::string err = ":" + cl.at(client_fd).get_host() + " 462 " + cl.at(client_fd).get_nickname();
             err += " :You may not reregister\r\n";
@@ -69,7 +94,7 @@ bool server::command_parse(std::vector<std::string> vec, int client_fd)
             if (engrafiete_sto_kanali(vec, client_fd) == false)
                 return false;
         }
-        else if (vec[0] == "/chat" && auth== true)
+        else if ((vec[0] == "/chat" || vec[0] == "CHAT" )&& auth== true)
         {
             if (cl[client_fd].is_registred < 2)
             {
@@ -166,6 +191,13 @@ bool server::cmd_handler(char *buff, int client_fd)
     {
         if (command_parse(vec, client_fd) == false)
             return false;
+    }
+    std::cout << "TIME = " << cl.at(client_fd).g_msg << std::endl;
+    if (cl.at(client_fd).g_msg == 3 && cl.at(client_fd).welcome == false)
+    {
+        std::cout << "Here\n";
+        sendWelcomeMessage(client_fd, cl[client_fd].get_nickname(), cl[client_fd].get_username());
+        cl.at(client_fd).welcome = true;
     }
     return true;
 }

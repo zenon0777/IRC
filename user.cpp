@@ -27,6 +27,7 @@ bool server::user_cmd(std::vector<std::string>vec, int c_fd){
             r_name = vec[3];
         cl.at(c_fd).set_username(vec[1], r_name);
         cl[c_fd].is_registred += 1;
+        cl.at(c_fd).g_msg = 3;
         return true;
     }
     return false;

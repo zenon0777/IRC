@@ -52,6 +52,14 @@ bool server::kick_memeber(std::vector<std::string> vec, int client_fd)
                 if (chan_map[vec[1]]->_operators_fd.size() == 1)
                 {
                     kick_rply(vec[1], client_fd, cfd);
+                    if (chan_map[vec[1]]->clients_fd.size() != 0)
+                    {
+                        std::vector<int>::iterator vit;
+                        vit = chan_map[vec[1]]->clients_fd.begin();
+                        chan_map[vec[1]]->_operators_fd.push_back(chan_map[vec[1]]->clients_fd[0]);
+                        chan_map[vec[1]]->clients_fd.erase(vit);
+                        return true;
+                    }
                     std::map<std::string, channel*>::iterator it;
                     for (it = chan_map.begin(); it != chan_map.end(); ++it)
                     {
@@ -72,6 +80,7 @@ bool server::kick_memeber(std::vector<std::string> vec, int client_fd)
                         {
                             kick_rply(vec[1], client_fd, cfd);
                             chan_map[vec[1]]->_operators_fd.erase(vit);
+                            break;
                         }
                     }
                 }

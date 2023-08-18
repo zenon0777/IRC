@@ -3,7 +3,8 @@
 bool server::send_messg(std::string mssg, int client_fd){
     const char *buff;
     size_t pos = mssg.find(':');
-    mssg = mssg.substr(pos);
+    if (pos != std::string::npos)
+        mssg = mssg.substr(pos);
     mssg += "\r\n";
     buff = mssg.c_str();
     if(send(client_fd, buff, strlen(buff), 0) < 0)
@@ -19,6 +20,14 @@ bool server::handle_recievers(std::vector<std::string> vec, int c_fd)
     std::string token;
     std::vector<std::string> nicks;
     std::string mssg;
+    if (vec.size() == 1)
+    {
+        // :punch.wa.us.dal.net 412 los :No text to send
+        std::string err = ":" + cl[c_fd].get_host() + " 412 " + cl[c_fd].get_nickname() + " :No text to send\r\n";
+        const char *buff = err.c_str();
+        send(c_fd, buff, strlen(buff), 0);
+        return false;
+    }
     while (std::getline(ss, token, ',')){
         nicks.push_back(token);}
     int cfd = -1;
@@ -27,14 +36,6 @@ bool server::handle_recievers(std::vector<std::string> vec, int c_fd)
         mssg += vec[i];
         if (i < vec.size() - 1)
             mssg += " ";
-    }
-    if (vec.size() == 1)
-    {
-        // :punch.wa.us.dal.net 412 los :No text to send
-        std::string err = ":" + cl[c_fd].get_host() + " 412 " + cl[c_fd].get_nickname() + " :No text to send\r\n";
-        const char *buff = err.c_str();
-        send(c_fd, buff, strlen(buff), 0);
-        return false;
     }
     //:punch.wa.us.dal.net 401 polsxf loskdscvfd :No such nick/channel
     for(size_t i = 0; i < nicks.size(); i++)
@@ -48,6 +49,7 @@ bool server::handle_recievers(std::vector<std::string> vec, int c_fd)
                 for(size_t j = 0; j < chan_map[nicks[i]]->clients_fd.size(); j++)
                 {
                     std::cout << chan_map[nicks[i]]->clients_fd[j] << std::endl;
+                    // operators
                     if (chan_map[nicks[i]]->clients_fd[j] > 0)
                         send_messg(mssg, chan_map[nicks[i]]->clients_fd[j]);
                     else

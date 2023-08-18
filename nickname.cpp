@@ -42,12 +42,16 @@ bool server::valid_nick(int c_fd, std::string str)
             // :punch.wa.us.dal.net 432 los 135 :Erroneous Nickname
             std::string errnouse = ":" + cl.at(c_fd).get_host() + " 432 " + cl.at(c_fd).get_nickname() + str;
             errnouse += " :Erroneous Nickname\r\n";
+            const char *buff = errnouse.c_str();
+            send(c_fd, buff, strlen(buff), 0);
             return false;
         }
         if (!strchr("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz|^_-{}[]\\", str[i]))
         {
             std::string errnouse = ":" + cl.at(c_fd).get_host() + " 432 " + cl.at(c_fd).get_nickname() + str;
             errnouse += " :Erroneous Nickname\r\n";
+            const char *buff = errnouse.c_str();
+            send(c_fd, buff, strlen(buff), 0);
             return false;
         }
     }
@@ -92,6 +96,7 @@ bool server::nickname_cmd(std::vector<std::string> &vec, int c_fd)
         std::map<int,Client>::iterator it = cl.find(c_fd);
         it->second.set_nickname(trim(nick, " \t\n\r"));
         it->second.is_registred += 1;
+        cl.at(c_fd).g_msg = 3;
     }
     else
     {
