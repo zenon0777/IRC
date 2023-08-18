@@ -2,6 +2,14 @@
 
 bool server::invite_sto_kanali(std::vector<std::string> vec, int client_fd)
 {
+    if (vec.size() < 3)
+    {
+        std::string err = ":" + cl.at(client_fd).get_host() + " 461 " + cl.at(client_fd).get_nickname();
+        err += " :Not enough parameters\r\n";
+        const char *buff = err.c_str();
+        send(client_fd, buff, strlen(buff), 0);
+        return false;
+    }
     int cfd = get_clientfd(vec[1]);
     if (cfd < 0)
     {

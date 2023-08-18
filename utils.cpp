@@ -26,8 +26,8 @@ std::vector<std::string> server::splite(std::string str, char delim)
 
 int server::get_clientfd(std::string name)
 {
-    std::map<int, Client>::const_iterator it;
-    for (it = cl.cbegin(); it!= cl.cend();++it){
+    std::map<int, Client>::iterator it;
+    for (it = cl.begin(); it!= cl.end();++it){
         if (it->second.get_nickname().compare(name) == 0)
             return it->first;
     }

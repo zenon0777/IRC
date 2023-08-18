@@ -27,7 +27,7 @@ channel::channel(const channel &obj)
 
 bool channel::is_member(int c_fd)
 {
-    std::vector<int>::const_iterator vit;
+    std::vector<int>::iterator vit;
     for (vit = this->clients_fd.begin(); vit != this->clients_fd.end(); ++vit)
     {
         if (*vit == c_fd)
@@ -50,7 +50,7 @@ std::vector<int> channel::get_chan_member()
 
 void    channel::add_member(Client &cl, std::string name){
     std::map<std::string, std::vector<int> >::iterator mit;
-    std::vector<int>::const_iterator vit;
+    std::vector<int>::iterator vit;
     if (is_member(cl.get_clientfd()) == true)
         return ;
     for (mit = this->chan_members.begin(); mit != this->chan_members.end(); ++mit){
@@ -58,11 +58,17 @@ void    channel::add_member(Client &cl, std::string name){
             mit->second.push_back(cl.get_clientfd());
     }
     clients_fd.push_back(cl.get_clientfd());
+    // a optimizer
+    // if (this->_operators_fd.size() == 0)
+    // {
+    //     this->_operators_fd.push_back(*this->clients_fd.begin());
+    //     clients_fd.erase(clients_fd.begin());
+    // }
     this->user_nickname[cl.get_clientfd()] = cl.get_nickname();
 }
 
 bool channel::is_operator(int client_fd){
-    std::vector<int>::const_iterator it;
+    std::vector<int>::iterator it;
     for(it=this->_operators_fd.begin(); it!= this->_operators_fd.end(); ++it){
         if (*it == client_fd)
             return true;
@@ -77,7 +83,7 @@ std::string channel::get_chan_name() const{
 void channel::remove_member(Client &cl)
 {
     std::map<std::string, std::vector<int> >::iterator mit;
-    std::vector<int>::const_iterator vit;
+    std::vector<int>::iterator vit;
     // for (mit = this->chan_members.begin(); mit != this->chan_members.end(); ++mit)
     // {
     //     if (mit->first == name)

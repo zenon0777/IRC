@@ -32,7 +32,7 @@ bool server::clinet_invited(std::string name, int client_fd)
 bool server::engrafiete_sto_kanali(std::vector<std::string> vec, int client_fd)
 {
     // printed_ascii only in channel name
-    if (vec.size() > 3 || vec.size() < 2 || (vec.size() == 2 && vec[1] == "#"))
+    if (/*vec.size() > 3 ||*/ vec.size() < 2 || (vec.size() == 2 && vec[1] == "#"))
     {
         std::string err = ":" + cl.at(client_fd).get_host() + " 461 " + cl.at(client_fd).get_nickname();
         err += " :Not enough parameters\r\n";
@@ -87,7 +87,6 @@ bool server::engrafiete_sto_kanali(std::vector<std::string> vec, int client_fd)
      // check security of channel
         else if (is_channelexist(chans[i]) == true && chan_map[chans[i]]->secure == false)
         {
-            std::cout << "ERRRROOR\n";
             if (client_exist(chans[i], client_fd) == true)
                 return true;
             else if (chan_map[chans[i]]->is_inviteonly)

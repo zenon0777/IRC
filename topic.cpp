@@ -2,14 +2,14 @@
 
 bool server::topicate_channel(std::vector<std::string> vec, int client_fd)
 {
-    if (vec.size() < 2)
+    if (vec.size() < 2 || vec[1] ==":")
     {
         std::string err = ":" + cl.at(client_fd).get_host() + " 461 " + cl.at(client_fd).get_nickname();
         err += " :Not enough parameters\r\n";
         const char *buff = err.c_str();
         send(client_fd, buff, strlen(buff), 0);
     }
-    if (is_channelexist(vec[1]) == true)
+    else if (is_channelexist(vec[1]) == true)
     {
         if (is_operator(vec[1], client_fd) == false && chan_map[vec[1]]->is_member(client_fd) ==  false)
         {
@@ -43,7 +43,7 @@ bool server::topicate_channel(std::vector<std::string> vec, int client_fd)
             return false;
         }
     }
-    else
+    else if (is_channelexist(vec[1]) == false)
     {
         std::string err = ":" + cl[client_fd].get_host() + " 403 " + cl[client_fd].get_nickname();
         err += " :No such channel\r\n";

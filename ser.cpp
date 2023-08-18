@@ -40,7 +40,10 @@ bool server::command_parse(std::vector<std::string> vec, int client_fd)
         }
         int flag = authenticateClient(vec, client_fd);
         if (flag == 0)
-            cl.at(client_fd).g_msg = 1; 
+        {
+            cl.at(client_fd).welcome = 0;
+            cl.at(client_fd).g_msg = 1;
+        }
         else if (flag == 1)
         {
             std::string err = ":" + cl.at(client_fd).get_host() + " 462 " + cl.at(client_fd).get_nickname();
@@ -193,11 +196,11 @@ bool server::cmd_handler(char *buff, int client_fd)
             return false;
     }
     std::cout << "TIME = " << cl.at(client_fd).g_msg << std::endl;
-    if (cl.at(client_fd).g_msg == 3 && cl.at(client_fd).welcome == false)
+    if (cl.at(client_fd).g_msg == 3 && (cl.at(client_fd).welcome == 1 || cl.at(client_fd).welcome == 2))
     {
         std::cout << "Here\n";
         sendWelcomeMessage(client_fd, cl[client_fd].get_nickname(), cl[client_fd].get_username());
-        cl.at(client_fd).welcome = true;
+        cl.at(client_fd).welcome = 5;
     }
     return true;
 }
@@ -217,10 +220,19 @@ server::~server()
 
 int main(int argc, char const *argv[])
 {
-    if (argc > 2)
+    if (argc == 3)
     {
         server sever(argv[1], argv[2]);
         sever.server_setup();
+    }
+    else if (argc > 3){
+        std::cerr << "Too much parameters\n";
+        return 1;
+    }
+    else
+    {
+        std::cerr << "NOT enough params\n";
+        return 1;
     }
     return 0;
 }

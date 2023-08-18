@@ -3,7 +3,7 @@
 #define SER_HPP
 #include <iostream>
 #include <sys/socket.h>
-#include <strstream>
+#include <sstream>
 #include <sys/types.h>
 #include <netdb.h>
 #include <arpa/inet.h>
@@ -30,15 +30,13 @@
 #include "channel.hpp"
 
 #define g_max_clients 10
-const std::string API_KEY = "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";
-const std::string API_URL = "https://api.openai.com/v1/chat/completions";
+
 class server
 {
 private:
     std::vector<struct pollfd> pfds;
     const char *_port;
     int sfd;
-
 public:
     // Client clients[g_max_clients];
     std::string _password;
@@ -95,15 +93,5 @@ public:
 
 
 std::string trim(const std::string &str, std::string set);
-// std::ostream &operator<<(std::ostream & o, std::map<std::string, channel> const& m) {
-
-//     for(std::map<std::string, channel>::const_iterator it = m.begin(); it != m.end(); it++)
-//     {
-//         std::vector<int> ls = it->second.clients_fd;
-//         for (int i = 0; i < ls.size(); i++)
-//             o << ls[i] << std::endl;
-//     }
-//     return o;
-// }
 std::vector<std::string> splite(std::string str, char delim);
 #endif

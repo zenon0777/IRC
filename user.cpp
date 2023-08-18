@@ -2,7 +2,7 @@
 
 bool server::user_cmd(std::vector<std::string>vec, int c_fd){
     std::string r_name;
-    if (vec.size() < 4)
+    if (vec.size() < 5)
     {
         std::string err = ":" + cl.at(c_fd).get_host() + " 461 " + cl.at(c_fd).get_nickname();
         err += " :Not enough parameters\r\n";
@@ -28,6 +28,7 @@ bool server::user_cmd(std::vector<std::string>vec, int c_fd){
         cl.at(c_fd).set_username(vec[1], r_name);
         cl[c_fd].is_registred += 1;
         cl.at(c_fd).g_msg = 3;
+        cl.at(c_fd).welcome++;
         return true;
     }
     return false;

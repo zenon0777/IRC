@@ -268,7 +268,13 @@ bool server::add_mode(int cfd, std::vector<std::string> vec)
 void server::mode_change(std::vector<std::string> vec, int client_fd)
 {
     if (vec.size() < 3)
+    {
+        std::string err = ":" + cl.at(client_fd).get_host() + " 461 " + cl.at(client_fd).get_nickname();
+        err += " :Not enough parameters\r\n";
+        const char *buff = err.c_str();
+        send(client_fd, buff, strlen(buff), 0);
         return ;
+    }
     std::cout << "Still here\n";
     if (is_channelexist(vec[1]) == true)
     {
@@ -278,16 +284,40 @@ void server::mode_change(std::vector<std::string> vec, int client_fd)
             {
                 if (vec[2] == "+o")
                 {
+                    if (vec.size() < 4)
+                    {
+                        std::string err = ":" + cl.at(client_fd).get_host() + " 461 " + cl.at(client_fd).get_nickname();
+                        err += " :Not enough parameters\r\n";
+                        const char *buff = err.c_str();
+                        send(client_fd, buff, strlen(buff), 0);
+                        return ;
+                    }
                     add_opers(vec, client_fd);
                 }
                 else if (vec[2] == "+k")
                 {
+                    if (vec.size() < 4)
+                    {
+                        std::string err = ":" + cl.at(client_fd).get_host() + " 461 " + cl.at(client_fd).get_nickname();
+                        err += " :Not enough parameters\r\n";
+                        const char *buff = err.c_str();
+                        send(client_fd, buff, strlen(buff), 0);
+                        return ;
+                    }
                     chan_map[vec[1]]->secure = true;
                     chan_map[vec[1]]->chan_password = vec[3];
                     key_reply(vec[1], client_fd, " +k ");
                 }
                 else if (vec[2] == "+l")
                 {
+                    if (vec.size() < 4)
+                    {
+                        std::string err = ":" + cl.at(client_fd).get_host() + " 461 " + cl.at(client_fd).get_nickname();
+                        err += " :Not enough parameters\r\n";
+                        const char *buff = err.c_str();
+                        send(client_fd, buff, strlen(buff), 0);
+                        return ;
+                    }
                     chan_map[vec[1]]->is_limited = true;
                     chan_map[vec[1]]->user_limite = atoi(vec[3].c_str());
                     limite_reply(vec[1], client_fd, vec[3]);

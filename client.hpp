@@ -3,7 +3,7 @@
 #include <iostream>
 #include <string.h>
 #include <sys/socket.h>
-#include <strstream>
+#include <sstream>
 #include <sys/types.h>
 #include <netdb.h>
 #include <arpa/inet.h>
@@ -30,7 +30,7 @@ private:
     char *mssg;
 public:
     int g_msg;
-    bool welcome;
+    int welcome;
     int        is_registred;
     Client();
     Client(const Client &obj);

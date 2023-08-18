@@ -2,9 +2,12 @@
 
 bool server::send_messg(std::string mssg, int client_fd){
     const char *buff;
-    size_t pos = mssg.find(':');
-    if (pos != std::string::npos)
-        mssg = mssg.substr(pos);
+    if (mssg[0] == ':')
+    {
+        size_t pos = mssg.find(':');
+        if (pos != std::string::npos)
+            mssg = mssg.substr(pos + 1);
+    }
     mssg += "\r\n";
     buff = mssg.c_str();
     if(send(client_fd, buff, strlen(buff), 0) < 0)
@@ -20,7 +23,7 @@ bool server::handle_recievers(std::vector<std::string> vec, int c_fd)
     std::string token;
     std::vector<std::string> nicks;
     std::string mssg;
-    if (vec.size() == 1)
+    if (vec.size() < 3)
     {
         // :punch.wa.us.dal.net 412 los :No text to send
         std::string err = ":" + cl[c_fd].get_host() + " 412 " + cl[c_fd].get_nickname() + " :No text to send\r\n";
@@ -31,7 +34,7 @@ bool server::handle_recievers(std::vector<std::string> vec, int c_fd)
     while (std::getline(ss, token, ',')){
         nicks.push_back(token);}
     int cfd = -1;
-    std::vector<std::string>::const_iterator it;
+    std::vector<std::string>::iterator it;
     for (size_t i = 2; i < vec.size(); i++){
         mssg += vec[i];
         if (i < vec.size() - 1)

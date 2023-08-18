@@ -64,7 +64,7 @@ bool server::nickname_cmd(std::vector<std::string> &vec, int c_fd)
     //:los!~d@5c8c-aff4-7127-3c3-1c20.230.197.ip NICK :lsp
     // allowed chars : ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz`|^_-{}[]\'
     std::string nick;
-    if (vec.size() == 1 && vec[0] == "NICK")
+    if (vec.size() < 2)
     {
         std::string err = ":" + cl.at(c_fd).get_host() + " 431 " + cl.at(c_fd).get_nickname();
         err += " :No nickname given\r\n";
@@ -97,6 +97,7 @@ bool server::nickname_cmd(std::vector<std::string> &vec, int c_fd)
         it->second.set_nickname(trim(nick, " \t\n\r"));
         it->second.is_registred += 1;
         cl.at(c_fd).g_msg = 3;
+        cl.at(c_fd).welcome++;
     }
     else
     {

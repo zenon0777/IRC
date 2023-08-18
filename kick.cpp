@@ -26,7 +26,15 @@ void server::kick_rply(std::string name, int oper, int cfd)
 bool server::kick_memeber(std::vector<std::string> vec, int client_fd)
 {
     // NEEDMOREPARAMS : error
-    if (is_channelexist(vec[1]) == true)
+    if (vec.size() <  3 || vec[2].empty())
+    {
+        std::string err = ":" + cl.at(client_fd).get_host() + " 461 " + cl.at(client_fd).get_nickname();
+        err += " :Not enough parameters\r\n";
+        const char *buff = err.c_str();
+        send(client_fd, buff, strlen(buff), 0);
+        return false;
+    }
+    else if (is_channelexist(vec[1]) == true)
     {
         if (is_operator(vec[1], client_fd) ==  true)
         {
@@ -52,12 +60,21 @@ bool server::kick_memeber(std::vector<std::string> vec, int client_fd)
                 if (chan_map[vec[1]]->_operators_fd.size() == 1)
                 {
                     kick_rply(vec[1], client_fd, cfd);
-                    if (chan_map[vec[1]]->clients_fd.size() != 0)
+                    if (chan_map[vec[1]]->clients_fd.size() > 0)
                     {
                         std::vector<int>::iterator vit;
                         vit = chan_map[vec[1]]->clients_fd.begin();
-                        chan_map[vec[1]]->_operators_fd.push_back(chan_map[vec[1]]->clients_fd[0]);
+                        chan_map[vec[1]]->_operators_fd.push_back(*chan_map[vec[1]]->clients_fd.begin());
                         chan_map[vec[1]]->clients_fd.erase(vit);
+                        for (vit = chan_map[vec[1]]->_operators_fd.begin(); vit != chan_map[vec[1]]->_operators_fd.end(); ++vit)
+                        {
+                            if (*vit == cfd)
+                            {
+                                chan_map[vec[1]]->_operators_fd.erase(vit);
+                                break;
+                            }
+                        }
+                        oper_rply(vec[1], client_fd, *chan_map[vec[1]]->_operators_fd.begin(), " +o ");
                         return true;
                     }
                     std::map<std::string, channel*>::iterator it;
@@ -99,7 +116,7 @@ bool server::kick_memeber(std::vector<std::string> vec, int client_fd)
             send(client_fd, buff, strlen(buff), 0);
         }
     }
-    else
+    else if (is_channelexist(vec[1]) == false)
     {
         std::string err = ":" + cl[client_fd].get_host() + " 403 " + cl[client_fd].get_nickname();
         err += " :No such channel\r\n";

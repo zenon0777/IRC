@@ -47,7 +47,7 @@ int server::server_setup()
     int cfd;
     char buff[256] = {0};
     socklen_t addr_len;
-    int nfds = 1;
+    short int nfds = 1;
     //get socket fd
     set_sfd(server_socket());
     pfds.push_back((struct pollfd){sfd, POLLIN, nfds});
@@ -73,7 +73,7 @@ int server::server_setup()
             {
                 int client_family = client.ss_family;
                 const char *ip_address = inet_ntop(client_family, get_in_addr((struct sockaddr*)&client), remoteIP, INET_ADDRSTRLEN);
-                if (ip_address == nullptr) {
+                if (ip_address == NULL) {
                     perror("inet_ntop");
                 }
                 char client_hostname[NI_MAXHOST];

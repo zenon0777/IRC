@@ -69,7 +69,7 @@ bool server::bot(std::vector<std::string> vec, int client_fd)
         curl_easy_setopt(curl, CURLOPT_URL, API_URL.c_str());
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
-        struct curl_slist* headers = nullptr;
+        struct curl_slist* headers = NULL;
         headers = curl_slist_append(headers, ("Content-Type: application/json"));
         headers = curl_slist_append(headers, ("Authorization: Bearer " + API_KEY).c_str());
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
