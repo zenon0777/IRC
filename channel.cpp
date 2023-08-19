@@ -36,10 +36,10 @@ bool channel::is_member(int c_fd)
     return false;
 }
 
-/*:lop!~zen@5c8c-aff4-7127-3c3-1c20.230.197.ip JOIN :#there
+/*:lop!~zen@5c8c-aff4-7127-3c3-1c20.230.197 JOIN :#there
 :punch.wa.us.dal.net 353 lop = #there :@lop 
 :punch.wa.us.dal.net 366 lop #there :End of /NAMES list.
-:lk!~zeno@5c8c-aff4-7127-3c3-1c20.230.197.ip JOIN :#there
+:lk!~zeno@5c8c-aff4-7127-3c3-1c20.230.197 JOIN :#there
 
 */
 
@@ -131,7 +131,7 @@ void channel::set_topic(std::string str){
 
 // add channel to channel map and setname and member as an operator
 /*join #there
-:lop!~l@5c8c-aff4-7127-3c3-1c20.230.197.ip JOIN :#there
+:lop!~l@5c8c-aff4-7127-3c3-1c20.230.197 JOIN :#there
 :punch.wa.us.dal.net 353 lop = #there :@lop 
 :punch.wa.us.dal.net 366 lop #there :End of /NAMES list.
 */

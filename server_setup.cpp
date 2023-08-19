@@ -90,7 +90,7 @@ int server::server_setup()
                 {
                     // for more optimization we should add signal handler section
                     
-                    // :lop!~s@5c8c-aff4-7127-3c3-1c20.230.197.ip QUIT :Client closed connection
+                    // :lop!~s@5c8c-aff4-7127-3c3-1c20.230.197 QUIT :Client closed connection
                     // ERROR :Closing Link: 197.230.30.146 (Client closed connection)
                     if (nbytes == 0)
                     {
@@ -98,45 +98,50 @@ int server::server_setup()
                         if (!cl.empty())
                         {
                             std::string quit = ":" + cl[pfds[i].fd].get_nickname() + "!~" + cl[pfds[i].fd].get_username()+"@";
-                            quit += cl[pfds[i].fd].get_clientip() + ".ip QUIT :Client closed connection\r\n";
+                            quit += cl[pfds[i].fd].get_clientip() + " QUIT :Client closed connection\r\n";
                             const char *buff = quit.c_str();
                             send(pfds[i].fd, buff, strlen(buff), 0);
+                        }
+                        std::map<std::string, channel*>::iterator it;
+                        for (it = chan_map.begin(); it != chan_map.end(); ++it)
+                        {
+                            std::cout << "Step ONE\n";
+                            if (it->second->_operators_fd.size() == 1)
+                            {
+                                if (it->second->_operators_fd[0] == pfds[i].fd)
+                                {
+                                    delete it->second;
+                                    chan_map.erase(it);
+                                    break;
+                                }
+                            }
+                            if (it->second->clients_fd.size() > 0)
+                            {
+                                std::cout << "HELLOODSOD\n" << std::endl;
+                                std::vector<int>::iterator vit;
+                                for (vit = it->second->_operators_fd.begin(); vit != it->second->_operators_fd.end(); ++vit){
+                                    if (*vit == pfds[i].fd)
+                                    {
+                                        std::cout << "HELLOODSOD11111\n";
+                                        it->second->_operators_fd.erase(vit);
+                                        break ;
+                                    }
+                                }
+                                std::vector<int>::iterator cit;
+                                for (cit = it->second->clients_fd.begin(); cit != it->second->clients_fd.end(); ++cit){
+                                    if (*cit == pfds[i].fd)
+                                    {
+                                        std::cout << "HELLOODSOD22222\n";
+                                        it->second->clients_fd.erase(cit);
+                                        break ;
+                                    }
+                                }
+                            }
                         }
                     }
                     else
                         perror("error : reciveing mssg");
                     cl.erase(pfds[i].fd);
-                    std::map<std::string, channel*>::iterator it;
-                    for (it= chan_map.begin(); it !=chan_map.end(); it++)
-                    {
-                        if (it->second->_operators_fd.size() > 1)
-                        {
-                            std::vector<int>::iterator vit;
-                            for (vit = it->second->_operators_fd.begin(); vit != it->second->_operators_fd.end(); ++vit){
-                                if (*vit == pfds[i].fd)
-                                {
-                                    it->second->_operators_fd.erase(vit);
-                                    break;
-                                }
-                            }
-                            for (vit = it->second->clients_fd.begin(); vit != it->second->clients_fd.end(); ++vit){
-                                if (*vit == pfds[i].fd)
-                                {
-                                    it->second->clients_fd.erase(vit);
-                                    break;
-                                }
-                            }
-                        }
-                        if (it->second->_operators_fd.size() == 1)
-                        {
-                            if (it->second->_operators_fd[0] == pfds[i].fd)
-                            {
-                                delete it->second;
-                                chan_map.erase(it);
-                                break;
-                            }
-                        }
-                    }
                     close(pfds[i].fd);
                     pfds.erase(pfds.begin() + i);
                     --i;

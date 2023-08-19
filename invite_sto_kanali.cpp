@@ -48,7 +48,7 @@ bool server::invite_sto_kanali(std::vector<std::string> vec, int client_fd)
             {
                 chan_map[vec[2]]->invited_members.push_back(cfd);
                 std::string err = ":" + cl[client_fd].get_nickname() + "!~" + cl[client_fd].get_username() + "@" + cl[client_fd].get_clientip()\
-                + ".ip INVITE " + cl[cfd].get_nickname() + " :";
+                + " INVITE " + cl[cfd].get_nickname() + " :";
                 err += vec[2] + "\r\n";
                 const char *buff = err.c_str();
                 send(cfd, buff, strlen(buff), 0);
@@ -75,7 +75,7 @@ bool server::invite_sto_kanali(std::vector<std::string> vec, int client_fd)
                     chan_map[vec[2]]->invited_members.push_back(cfd);
 
                     std::string err = ":" + cl[client_fd].get_nickname() + "!~" + cl[client_fd].get_username() + "@" + cl[client_fd].get_clientip()\
-                    + ".ip INVITE " + cl[cfd].get_nickname() + " :";
+                    + " INVITE " + cl[cfd].get_nickname() + " :";
                     err += vec[2] + "\r\n";
                     const char *buff = err.c_str();
                     send(cfd, buff, strlen(buff), 0);
@@ -99,7 +99,7 @@ bool server::invite_sto_kanali(std::vector<std::string> vec, int client_fd)
                 chan_map[vec[2]]->invited_members.push_back(cfd);
 
                 std::string err = ":" + cl[client_fd].get_nickname() + "!~" + cl[client_fd].get_username() + "@" + cl[client_fd].get_clientip()\
-                + ".ip INVITE " + cl[cfd].get_nickname() + " :";
+                + " INVITE " + cl[cfd].get_nickname() + " :";
                 err += vec[2] + "\r\n";
                 const char *buff = err.c_str();
                 send(cfd, buff, strlen(buff), 0);
@@ -127,7 +127,7 @@ bool server::invite_sto_kanali(std::vector<std::string> vec, int client_fd)
                     chan_map[vec[2]]->invited_members.push_back(cfd);
 
                     std::string err = ":" + cl[client_fd].get_nickname() + "!~" + cl[client_fd].get_username() + "@" + cl[client_fd].get_clientip()\
-                    + ".ip INVITE " + cl[cfd].get_nickname() + " :";
+                    + " INVITE " + cl[cfd].get_nickname() + " :";
                     err += vec[2] + "\r\n";
                     const char *buff = err.c_str();
                     send(cfd, buff, strlen(buff), 0);

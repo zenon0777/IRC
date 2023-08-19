@@ -245,11 +245,11 @@ bool server::engrafiete_sto_kanali(std::vector<std::string> vec, int client_fd)
     return true;
 }
 
-//:los!~p@5c8c-aff4-7127-3c3-1c20.230.197.ip JOIN :#there
+//:los!~p@5c8c-aff4-7127-3c3-1c20.230.197 JOIN :#there
 
 bool server::reply(std::string name, int cfd, bool flag)
 {
-    // lr!~k@5c8c-aff4-7127-3c3-1c20.230.197.ip JOIN :#there
+    // lr!~k@5c8c-aff4-7127-3c3-1c20.230.197 JOIN :#there
     // :punch.wa.us.dal.net 353 lr = #there :lr @lop 
     // :punch.wa.us.dal.net 366 lr #there :End of /NAMES list
     std::vector<int> fds = chan_map[name]->get_chan_member();
@@ -263,7 +263,7 @@ bool server::reply(std::string name, int cfd, bool flag)
             chan_members += tmp;
             chan_members += " ";
             std::string notif = ":" + cl[cfd].get_nickname() + "!~" + cl[cfd].get_username() + "@" + cl[cfd].get_clientip();
-            notif += ".ip JOIN :" + name + "\r\n";
+            notif += " JOIN :" + name + "\r\n";
             const char *rpl = notif.c_str();
             if (fds[i] != cfd)
                 send(fds[i], rpl, strlen(rpl), 0);
@@ -277,7 +277,7 @@ bool server::reply(std::string name, int cfd, bool flag)
         tmpl = cl[opers[j]].get_nickname();
         chan_opers += tmpl;
         std::string notif = ":" + cl[cfd].get_nickname() + "!~" + cl[cfd].get_username() + "@" + cl[cfd].get_clientip();
-        notif += ".ip JOIN :" + name + "\r\n";
+        notif += " JOIN :" + name + "\r\n";
         const char *rpl = notif.c_str();
         if (opers[j] != cfd)
             send(opers[j], rpl, strlen(rpl), 0);
@@ -287,7 +287,7 @@ bool server::reply(std::string name, int cfd, bool flag)
     
     if (flag == true)
     {
-        std::string rpl = ":" + cl[cfd].get_nickname() + "!~" + cl[cfd].get_username() + "@" + cl[cfd].get_clientip() + ".ip JOIN :"+ name + "\r\n";
+        std::string rpl = ":" + cl[cfd].get_nickname() + "!~" + cl[cfd].get_username() + "@" + cl[cfd].get_clientip() + " JOIN :"+ name + "\r\n";
         rpl += ":" + cl[cfd].get_host() + " 353 " + cl[cfd].get_nickname() + " = " + name + " :" + chan_members + "@" + chan_opers + "\r\n"; 
         rpl += ":" + cl[cfd].get_host() + " 366 " + cl[cfd].get_nickname() + " " + name + " :End of /NAMES list.";
         rpl += "\r\n";

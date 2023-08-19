@@ -61,7 +61,7 @@ bool server::valid_nick(int c_fd, std::string str)
 
 bool server::nickname_cmd(std::vector<std::string> &vec, int c_fd)
 {
-    //:los!~d@5c8c-aff4-7127-3c3-1c20.230.197.ip NICK :lsp
+    //:los!~d@5c8c-aff4-7127-3c3-1c20.230.197 NICK :lsp
     // allowed chars : ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz`|^_-{}[]\'
     std::string nick;
     if (vec.size() < 2)
@@ -81,7 +81,7 @@ bool server::nickname_cmd(std::vector<std::string> &vec, int c_fd)
         else
             nick = vec[1];
         std::string err = ":" + cl.at(c_fd).get_nickname() + "!~" + cl.at(c_fd).get_username() + "@" + cl.at(c_fd).get_clientip();
-        err += ".ip NICK :" + vec[1] + "\r\n";
+        err += " NICK :" + vec[1] + "\r\n";
         const char *buff = err.c_str();
         send(c_fd, buff, strlen(buff), 0);
         std::map<int,Client>::iterator it = cl.find(c_fd);

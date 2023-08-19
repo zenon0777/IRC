@@ -4,12 +4,12 @@
 void server::kick_rply(std::string name, int oper, int cfd)
 {
     //lop = oper / los = member
-    // :lop!~zen@5c8c-aff4-7127-3c3-1c20.230.197.ip KICK #the los :lop
+    // :lop!~zen@5c8c-aff4-7127-3c3-1c20.230.197 KICK #the los :lop
     std::vector<int> fds = chan_map[name]->get_chan_member();
     for (size_t i = 0; i < fds.size(); i++)
     {
         std::string notif = ":" + cl[oper].get_nickname() + "!~" + cl[oper].get_username() + "@" + cl[oper].get_clientip();
-        notif += ".ip KICK " + name + " " + cl[cfd].get_nickname() + " :" + cl[oper].get_nickname() + "\r\n";
+        notif += " KICK " + name + " " + cl[cfd].get_nickname() + " :" + cl[oper].get_nickname() + "\r\n";
         const char *rpl = notif.c_str();
         send(fds[i], rpl, strlen(rpl), 0);
     }
@@ -17,7 +17,7 @@ void server::kick_rply(std::string name, int oper, int cfd)
     for (size_t j = 0; j < opers.size(); j++)
     {
         std::string notif_oper = ":" + cl[oper].get_nickname() + "!~" + cl[oper].get_username() + "@" + cl[oper].get_clientip();
-        notif_oper += ".ip KICK " + name + " " + cl[cfd].get_nickname() + " :" + cl[oper].get_nickname() + "\r\n";
+        notif_oper += " KICK " + name + " " + cl[cfd].get_nickname() + " :" + cl[oper].get_nickname() + "\r\n";
         const char *rpl_oper = notif_oper.c_str();
         send(opers[j], rpl_oper, strlen(rpl_oper), 0);
     }

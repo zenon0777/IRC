@@ -6,7 +6,7 @@ void server::oper_rply(std::string name, int oper, int cfd, std::string mssg)
     for (size_t i = 0; i < fds.size(); i++)
     {
         std::string notif = ":" + cl[oper].get_nickname() + "!~" + cl[oper].get_username() + "@" + cl[oper].get_clientip();
-        notif += ".ip MODE " + name + mssg + cl[cfd].get_nickname() + "\r\n";
+        notif += " MODE " + name + mssg + cl[cfd].get_nickname() + "\r\n";
         const char *rpl = notif.c_str();
         send(fds[i], rpl, strlen(rpl), 0);
     }
@@ -15,7 +15,7 @@ void server::oper_rply(std::string name, int oper, int cfd, std::string mssg)
     for (size_t j =0; j < opers.size(); j++)
     {
         std::string notif = ":" + cl[oper].get_nickname() + "!~" + cl[oper].get_username() + "@" + cl[oper].get_clientip();
-        notif += ".ip MODE " + name + mssg + cl[cfd].get_nickname() + "\r\n";
+        notif += " MODE " + name + mssg + cl[cfd].get_nickname() + "\r\n";
         const char *rpl = notif.c_str();
         send(opers[j], rpl, strlen(rpl), 0);
     }
@@ -23,12 +23,12 @@ void server::oper_rply(std::string name, int oper, int cfd, std::string mssg)
 
 void server::add_reply(std::string name, int cfd, std::string mssg)
 {
-    //:losf!~sd@5c8c-aff4-7127-3c3-1c20.230.197.ip MODE #top +i 
+    //:losf!~sd@5c8c-aff4-7127-3c3-1c20.230.197 MODE #top +i 
     std::vector<int> fds = chan_map[name]->get_chan_member();
     for (size_t i = 0; i < fds.size(); i++)
     {
         std::string notif = ":" + cl[cfd].get_nickname() + "!~" + cl[cfd].get_username() + "@" + cl[cfd].get_clientip();
-        notif += ".ip MODE " + name + mssg + "\r\n";
+        notif += " MODE " + name + mssg + "\r\n";
         const char *rpl = notif.c_str();
         send(fds[i], rpl, strlen(rpl), 0);
     }
@@ -37,7 +37,7 @@ void server::add_reply(std::string name, int cfd, std::string mssg)
     for (size_t j =0; j < opers.size(); j++)
     {
         std::string notif = ":" + cl[cfd].get_nickname() + "!~" + cl[cfd].get_username() + "@" + cl[cfd].get_clientip();
-        notif += ".ip MODE " + name + mssg + cl[cfd].get_nickname() + "\r\n";
+        notif += " MODE " + name + mssg + cl[cfd].get_nickname() + "\r\n";
         const char *rpl = notif.c_str();
         send(opers[j], rpl, strlen(rpl), 0);
     }
@@ -46,12 +46,12 @@ void server::add_reply(std::string name, int cfd, std::string mssg)
 
 void server::take_reply(std::string name, int cfd, std::string mssg)
 {
-    //:losf!~sd@5c8c-aff4-7127-3c3-1c20.230.197.ip MODE #top +i 
+    //:losf!~sd@5c8c-aff4-7127-3c3-1c20.230.197 MODE #top +i 
     std::vector<int> fds = chan_map[name]->get_chan_member();
     for (size_t i = 0; i < fds.size(); i++)
     {
         std::string notif = ":" + cl[cfd].get_nickname() + "!~" + cl[cfd].get_username() + "@" + cl[cfd].get_clientip();
-        notif += ".ip MODE " + name + mssg + "\r\n";
+        notif += " MODE " + name + mssg + "\r\n";
         const char *rpl = notif.c_str();
         send(fds[i], rpl, strlen(rpl), 0);
     }
@@ -60,18 +60,18 @@ void server::take_reply(std::string name, int cfd, std::string mssg)
     for (size_t j =0; j < opers.size(); j++)
     {
         std::string notif = ":" + cl[cfd].get_nickname() + "!~" + cl[cfd].get_username() + "@" + cl[cfd].get_clientip();
-        notif += ".ip MODE " + name + mssg + "\r\n";
+        notif += " MODE " + name + mssg + "\r\n";
         const char *rpl = notif.c_str();
         send(opers[j], rpl, strlen(rpl), 0);
     }
 
 }
 
-// :los!~k@5c8c-aff4-7127-3c3-1c20.230.197.ip MODE #top +o lop
+// :los!~k@5c8c-aff4-7127-3c3-1c20.230.197 MODE #top +o lop
 
-// :losf!~sd@5c8c-aff4-7127-3c3-1c20.230.197.ip MODE #top +k key
+// :losf!~sd@5c8c-aff4-7127-3c3-1c20.230.197 MODE #top +k key
 
-// :losf!~sd@5c8c-aff4-7127-3c3-1c20.230.197.ip MODE #top +l 5
+// :losf!~sd@5c8c-aff4-7127-3c3-1c20.230.197 MODE #top +l 5
 
 
 void server::limite_reply(std::string name, int oper, std::string limite)
@@ -80,7 +80,7 @@ void server::limite_reply(std::string name, int oper, std::string limite)
     for (size_t i = 0; i < fds.size(); i++)
     {
         std::string notif = ":" + cl[oper].get_nickname() + "!~" + cl[oper].get_username() + "@" + cl[oper].get_clientip();
-        notif += ".ip MODE " + name + " +l  " + limite + "\r\n";
+        notif += " MODE " + name + " +l  " + limite + "\r\n";
         const char *rpl = notif.c_str();
         send(fds[i], rpl, strlen(rpl), 0);
     }
@@ -89,7 +89,7 @@ void server::limite_reply(std::string name, int oper, std::string limite)
     for (size_t j =0; j < opers.size(); j++)
     {
         std::string notif = ":" + cl[oper].get_nickname() + "!~" + cl[oper].get_username() + "@" + cl[oper].get_clientip();
-        notif += ".ip MODE " + name + " +l  " + limite + "\r\n";
+        notif += " MODE " + name + " +l  " + limite + "\r\n";
         const char *rpl = notif.c_str();
         send(opers[j], rpl, strlen(rpl), 0);
     }
@@ -101,7 +101,7 @@ void server::key_reply(std::string name, int oper, std::string mssg)
     for (size_t i = 0; i < fds.size(); i++)
     {
         std::string notif = ":" + cl[oper].get_nickname() + "!~" + cl[oper].get_username() + "@" + cl[oper].get_clientip();
-        notif += ".ip MODE " + name + mssg + chan_map[name]->chan_password + "\r\n";
+        notif += " MODE " + name + mssg + chan_map[name]->chan_password + "\r\n";
         const char *rpl = notif.c_str();
         send(fds[i], rpl, strlen(rpl), 0);
     }
@@ -110,7 +110,7 @@ void server::key_reply(std::string name, int oper, std::string mssg)
     for (size_t j =0; j < opers.size(); j++)
     {
         std::string notif = ":" + cl[oper].get_nickname() + "!~" + cl[oper].get_username() + "@" + cl[oper].get_clientip();
-        notif += ".ip MODE " + name + mssg + chan_map[name]->chan_password + "\r\n";
+        notif += " MODE " + name + mssg + chan_map[name]->chan_password + "\r\n";
         const char *rpl = notif.c_str();
         send(opers[j], rpl, strlen(rpl), 0);
     }
@@ -161,7 +161,7 @@ void server::take_opers(std::vector<std::string> vec, int client_fd)
 
 void server::add_opers(std::vector<std::string> vec, int client_fd)
 {
-    // to everyone in channel : :los!~k@5c8c-aff4-7127-3c3-1c20.230.197.ip MODE #top +o lop
+    // to everyone in channel : :los!~k@5c8c-aff4-7127-3c3-1c20.230.197 MODE #top +o lop
     int cfd = get_clientfd(vec[3]);
     if (cfd < 0)
     {

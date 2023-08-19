@@ -8,16 +8,16 @@ bool server::send_messg(std::string mssg, int sender, int client_fd, std::string
         if (pos != std::string::npos)
             mssg = mssg.substr(pos + 1);
     }
-    // :los!~n@127.0.0.1.ip JOIN :#there
+    // :los!~n@127.0.0.1 JOIN :#there
     std::string reply;
     if (chan.empty()){
         reply = ":" + cl[sender].get_nickname() + "!~" + cl[sender].get_username() + "@" + cl[sender].get_clientip();
-        reply += ".ip PRIVMSG " + cl[client_fd].get_nickname() + " :" + mssg;
+        reply += " PRIVMSG " + cl[client_fd].get_nickname() + " :" + mssg;
     }
     else if (!chan.empty())
     {
         reply = ":" + cl[sender].get_nickname() + "!~" + cl[sender].get_username() + "@" + cl[sender].get_clientip();
-        reply += ".ip PRIVMSG " + chan + " :" + mssg;
+        reply += " PRIVMSG " + chan + " :" + mssg;
     }
     reply += "\r\n";
     buff = reply.c_str();
