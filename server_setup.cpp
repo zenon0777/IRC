@@ -82,7 +82,7 @@ int server::server_setup()
                     fprintf(stderr, "getnameinfo: %s\n", gai_strerror(result));
                     strncpy(client_hostname, remoteIP, NI_MAXHOST);
                 }
-                std::cout << "Client connected from IP: " << ip_address << " Hostname: " << client_hostname << std::endl;
+                // std::cout << "Client connected from IP: " << ip_address << " Hostname: " << client_hostname << std::endl;
                 bzero(buff, sizeof(buff));
                 size_t nbytes = recv(pfds[i].fd, (void *)buff, sizeof(buff), 0);
                 std::cout << "bytes read:" << nbytes << std::endl;
@@ -94,7 +94,14 @@ int server::server_setup()
                     // ERROR :Closing Link: 197.230.30.146 (Client closed connection)
                     if (nbytes == 0)
                     {
-                        std::cout << "client close sesion" << std::endl;
+                        /// a traiter
+                        if (!cl.empty())
+                        {
+                            std::string quit = ":" + cl[pfds[i].fd].get_nickname() + "!~" + cl[pfds[i].fd].get_username()+"@";
+                            quit += cl[pfds[i].fd].get_clientip() + ".ip QUIT :Client closed connection\r\n";
+                            const char *buff = quit.c_str();
+                            send(pfds[i].fd, buff, strlen(buff), 0);
+                        }
                     }
                     else
                         perror("error : reciveing mssg");
@@ -141,7 +148,8 @@ int server::server_setup()
                     cl.at(pfds[i].fd).set_cfd(pfds[i].fd);
                     cl.at(pfds[i].fd).set_host(client_hostname);
                     cl.at(pfds[i].fd).set_clientip(ip_address);
-                    cmd_handler(buff, pfds[i].fd);
+                    if (nbytes < 256)
+                        cmd_handler(buff, pfds[i].fd);
                     continue;
                 }
                 continue;

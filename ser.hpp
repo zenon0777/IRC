@@ -73,7 +73,7 @@ public:
     bool is_channelexist(std::string name);
     void removeclients(int cfd, int cfd2);
     bool handle_recievers(std::vector<std::string> vec, int c_fd);
-    bool send_messg(std::string mssg, int, int client_fd);
+    bool send_messg(std::string mssg, int, int client_fd, std::string);
     int server_setup();
     bool is_operator(std::string chan_name, int client_fd);
     channel get_channel(std::string);

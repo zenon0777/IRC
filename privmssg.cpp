@@ -1,6 +1,6 @@
 #include"ser.hpp"
 
-bool server::send_messg(std::string mssg, int sender, int client_fd){
+bool server::send_messg(std::string mssg, int sender, int client_fd, std::string chan){
     const char *buff;
     if (mssg[0] == ':')
     {
@@ -9,8 +9,16 @@ bool server::send_messg(std::string mssg, int sender, int client_fd){
             mssg = mssg.substr(pos + 1);
     }
     // :los!~n@127.0.0.1.ip JOIN :#there
-    std::string reply = ":" + cl[sender].get_nickname() + "!~" + cl[sender].get_username() + "@" + cl[sender].get_clientip();
-    reply += ".ip PRIVMSG " + cl[client_fd].get_nickname() + " :" + mssg;
+    std::string reply;
+    if (chan.empty()){
+        reply = ":" + cl[sender].get_nickname() + "!~" + cl[sender].get_username() + "@" + cl[sender].get_clientip();
+        reply += ".ip PRIVMSG " + cl[client_fd].get_nickname() + " :" + mssg;
+    }
+    else if (!chan.empty())
+    {
+        reply = ":" + cl[sender].get_nickname() + "!~" + cl[sender].get_username() + "@" + cl[sender].get_clientip();
+        reply += ".ip PRIVMSG " + chan + " :" + mssg;
+    }
     reply += "\r\n";
     buff = reply.c_str();
     if(send(client_fd, buff, strlen(buff), 0) < 0)
@@ -57,7 +65,7 @@ bool server::handle_recievers(std::vector<std::string> vec, int c_fd)
                     std::cout << chan_map[nicks[i]]->clients_fd[j] << std::endl;
                     // operators
                     if (chan_map[nicks[i]]->clients_fd[j] > 0)
-                        send_messg(mssg, c_fd, chan_map[nicks[i]]->clients_fd[j]);
+                        send_messg(mssg, c_fd, chan_map[nicks[i]]->clients_fd[j], nicks[i]);
                     else
                     {
                         std::string err = ":" + cl[c_fd].get_host() + " 401 " + cl[c_fd].get_nickname() + " " + nicks[i] + " :No such nick/channel\r\n";
@@ -69,7 +77,7 @@ bool server::handle_recievers(std::vector<std::string> vec, int c_fd)
                 {
                     std::cout << chan_map[nicks[i]]->_operators_fd[k] << std::endl;
                     if (chan_map[nicks[i]]->_operators_fd[k] > 0)
-                        send_messg(mssg, c_fd, chan_map[nicks[i]]->_operators_fd[k]);
+                        send_messg(mssg, c_fd, chan_map[nicks[i]]->_operators_fd[k], nicks[i]);
                     else
                     {
                         std::string err = ":" + cl[c_fd].get_host() + " 401 " + cl[c_fd].get_nickname() + " " + nicks[i] + " :No such nick/channel\r\n";
@@ -91,7 +99,7 @@ bool server::handle_recievers(std::vector<std::string> vec, int c_fd)
             cfd = get_clientfd(nicks[i]);
             std::cout << cfd << std::endl;
             if (cfd > 0)
-                send_messg(mssg, c_fd, cfd);
+                send_messg(mssg, c_fd, cfd, "");
             else if (cfd < 0)
             {
                 std::string err = ":" + cl[c_fd].get_host() + " 401 " + cl[c_fd].get_nickname() + " " + nicks[i] + " :No such nick/channel\r\n";

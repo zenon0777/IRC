@@ -162,7 +162,10 @@ bool server::command_parse(std::vector<std::string> vec, int client_fd)
         }
         else if (auth == false)
         {
-            send(client_fd, "Need authentification to continue:...\r\n", 40, 0);
+            //:tungsten.libera.chat 451 * :You have not registered
+            std::string err= ":"+cl[client_fd].get_host() + " 451 * :You have not registered\r\n";
+            const char *buff = err.c_str();  
+            send(client_fd, err.c_str(), strlen(buff), 0);
             return false;
         }
     }
@@ -184,7 +187,6 @@ bool server::cmd_handler(char *buff, int client_fd)
         for (size_t i =0; i < cmd_1.size(); i++)
         {
             cmd = cmd_1[i];
-            std::cout << cmd << "   ME " << std::endl;
             vec = splite(cmd, ' ');
             if (command_parse(vec, client_fd) == false)
                 return false;
@@ -195,10 +197,8 @@ bool server::cmd_handler(char *buff, int client_fd)
         if (command_parse(vec, client_fd) == false)
             return false;
     }
-    std::cout << "TIME = " << cl.at(client_fd).g_msg << std::endl;
     if (cl.at(client_fd).g_msg == 3 && (cl.at(client_fd).welcome == 1 || cl.at(client_fd).welcome == 2))
     {
-        std::cout << "Here\n";
         sendWelcomeMessage(client_fd, cl[client_fd].get_nickname(), cl[client_fd].get_username());
         cl.at(client_fd).welcome = 5;
     }
