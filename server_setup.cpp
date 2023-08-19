@@ -105,7 +105,6 @@ int server::server_setup()
                         std::map<std::string, channel*>::iterator it;
                         for (it = chan_map.begin(); it != chan_map.end(); ++it)
                         {
-                            std::cout << "Step ONE\n";
                             if (it->second->_operators_fd.size() == 1)
                             {
                                 if (it->second->_operators_fd[0] == pfds[i].fd)
@@ -117,12 +116,10 @@ int server::server_setup()
                             }
                             if (it->second->clients_fd.size() > 0)
                             {
-                                std::cout << "HELLOODSOD\n" << std::endl;
                                 std::vector<int>::iterator vit;
                                 for (vit = it->second->_operators_fd.begin(); vit != it->second->_operators_fd.end(); ++vit){
                                     if (*vit == pfds[i].fd)
                                     {
-                                        std::cout << "HELLOODSOD11111\n";
                                         it->second->_operators_fd.erase(vit);
                                         break ;
                                     }
@@ -131,7 +128,6 @@ int server::server_setup()
                                 for (cit = it->second->clients_fd.begin(); cit != it->second->clients_fd.end(); ++cit){
                                     if (*cit == pfds[i].fd)
                                     {
-                                        std::cout << "HELLOODSOD22222\n";
                                         it->second->clients_fd.erase(cit);
                                         break ;
                                     }
