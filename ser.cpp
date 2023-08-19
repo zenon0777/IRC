@@ -184,7 +184,6 @@ bool server::cmd_handler(char *buff, int client_fd)
         for (size_t i =0; i < cmd_1.size(); i++)
         {
             cmd = cmd_1[i];
-            std::cout << cmd << "   ME " << std::endl;
             vec = splite(cmd, ' ');
             if (command_parse(vec, client_fd) == false)
                 return false;

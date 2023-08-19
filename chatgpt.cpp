@@ -40,14 +40,16 @@ void server::parse_response(std::string response, int client_fd)
 //   }\
 // }";
     std::cout << response + "\n" << std::endl;
-    std::string resp = extractJsonValue(response, "content");
+    std::string resp;
+    resp = "001 " + cl[client_fd].get_nickname() + " :";
+    resp += extractJsonValue(response, "content");
     // size_t linepos = resp.find("\n");
     // while(linepos != std::string::npos){
     //     resp.replace();
     // }
-    resp += "\r\n\r\n";
+    resp += "\r\n";
+    std::cout << client_fd << "  :::  " << resp << std::endl;
     const char *buff = resp.c_str();
-    std::cout << client_fd << "  :::  " << buff << std::endl;
     send(client_fd, buff, strlen(buff), 0);
 }
 
