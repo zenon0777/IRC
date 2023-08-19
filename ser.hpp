@@ -30,7 +30,8 @@
 #include "channel.hpp"
 
 #define g_max_clients 10
-
+const std::string API_KEY = "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";
+const std::string API_URL = "https://api.openai.com/v1/chat/completions";
 class server
 {
 private:
@@ -88,6 +89,7 @@ public:
     std::string get_pass();
     bool cmd_handler(char *mssg, int client_fd);
     void parse_response(std::string response, int);
+    // void sendfile(const char * ippadress, char *file);
     ~server();
 };
 
