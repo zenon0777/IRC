@@ -30,7 +30,8 @@
 #include "channel.hpp"
 
 #define g_max_clients 10
-
+const std::string API_KEY = "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";
+const std::string API_URL = "https://api.openai.com/v1/chat/completions";
 class server
 {
 private:
@@ -72,7 +73,7 @@ public:
     bool is_channelexist(std::string name);
     void removeclients(int cfd, int cfd2);
     bool handle_recievers(std::vector<std::string> vec, int c_fd);
-    bool send_messg(std::string mssg, int client_fd);
+    bool send_messg(std::string mssg, int, int client_fd);
     int server_setup();
     bool is_operator(std::string chan_name, int client_fd);
     channel get_channel(std::string);
@@ -88,6 +89,7 @@ public:
     std::string get_pass();
     bool cmd_handler(char *mssg, int client_fd);
     void parse_response(std::string response, int);
+    // void sendfile(const char * ippadress, char *file);
     ~server();
 };
 
