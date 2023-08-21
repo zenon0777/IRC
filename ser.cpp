@@ -206,24 +206,35 @@ bool server::cmd_handler(char *buff, int client_fd)
 }
 
 
-
+server::server()
+{
+}
 
 server::server(const char *port, const char *password)
 {
     _port = port;
     _password = password;
 }
+
 server::~server()
 {
 }
-
 
 int main(int argc, char const *argv[])
 {
     if (argc == 3)
     {
+        for(int i= 0; argv[1][i]; i++)
+        {
+            if(isdigit(argv[1][i]) == 0)
+            {
+                std::cerr << "PORT must be only digits" << std::endl;
+                return 1;
+            }
+        }
         server sever(argv[1], argv[2]);
         sever.server_setup();
+        while(1);
     }
     else if (argc > 3){
         std::cerr << "Too much parameters\n";

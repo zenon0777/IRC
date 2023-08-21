@@ -30,7 +30,7 @@
 #include "channel.hpp"
 
 #define g_max_clients 10
-const std::string API_KEY = "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";
+const std::string API_KEY = "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";
 const std::string API_URL = "https://api.openai.com/v1/chat/completions";
 class server
 {
@@ -46,6 +46,7 @@ public:
     std::map<std::string, channel *>chan_map;
     std::map<int , Client> cl;
     server(const char *port, const char *password);
+    server();
     int server_socket();
     bool command_parse(std::vector<std::string> vec, int client_fd);
     int authenticateClient(std::vector<std::string> c, int listener);
@@ -59,8 +60,8 @@ public:
     void take_reply(std::string name, int cfd, std::string mssg);
     bool take_mode(int cfd, std::vector<std::string> vec);
     bool add_mode(int cfd, std::vector<std::string> vec);
-    void take_opers(std::vector<std::string> vec, int client_fd);
-    void take_pass(std::vector<std::string> vec, int client_fd);
+    bool take_opers(std::vector<std::string> vec, int client_fd);
+    bool take_pass(std::vector<std::string> vec, int client_fd);
     void oper_rply(std::string, int, int, std::string);
     bool valid_nick(int cfd, std::string str);
     void key_reply(std::string name, int oper, std::string);

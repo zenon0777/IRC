@@ -30,6 +30,7 @@ int server::server_socket()
         perror("listen :error");
         exit(1);
     }
+    freeaddrinfo(res);
     return sfd;
 }
 
@@ -105,7 +106,7 @@ int server::server_setup()
                         std::map<std::string, channel*>::iterator it;
                         for (it = chan_map.begin(); it != chan_map.end(); ++it)
                         {
-                            if (it->second->_operators_fd.size() == 1)
+                            if (it->second->_operators_fd.size() == 1 && it->second->clients_fd.size() == 0)
                             {
                                 if (it->second->_operators_fd[0] == pfds[i].fd)
                                 {
@@ -114,22 +115,85 @@ int server::server_setup()
                                     break;
                                 }
                             }
-                            if (it->second->clients_fd.size() > 0)
+                            else if (it->second->clients_fd.size() == 1 && it->second->_operators_fd.size() == 0)
+                            {
+                                if (it->second->clients_fd[0] == pfds[i].fd)
+                                {
+                                    delete it->second;
+                                    chan_map.erase(it);
+                                    break;
+                                }
+                            }
+                            else if (it->second->clients_fd.size() == 0 && it->second->_operators_fd.size() > 1)
                             {
                                 std::vector<int>::iterator vit;
-                                for (vit = it->second->_operators_fd.begin(); vit != it->second->_operators_fd.end(); ++vit){
+                                for (vit = it->second->_operators_fd.begin(); vit != it->second->_operators_fd.end(); ++vit)
+                                {
+                                    std::string quit = ":" + cl[pfds[i].fd].get_nickname() + "!~" + cl[pfds[i].fd].get_username() + "@" + cl[pfds[i].fd].get_clientip();
+                                    quit += " QUIT :EOF From client\r\n";
+                                    const char *buff= quit.c_str();
+                                    send(*vit, buff, strlen(buff),0);
                                     if (*vit == pfds[i].fd)
                                     {
                                         it->second->_operators_fd.erase(vit);
-                                        break ;
+                                        break;
+                                    }
+                                }
+                            }
+                            else if (it->second->clients_fd.size() > 1 && it->second->_operators_fd.size() == 0)
+                            {
+                                std::vector<int>::iterator vit;
+                                for (vit = it->second->clients_fd.begin(); vit != it->second->clients_fd.end(); ++vit)
+                                {
+                                    std::string quit = ":" + cl[pfds[i].fd].get_nickname() + "!~" + cl[pfds[i].fd].get_username() + "@" + cl[pfds[i].fd].get_clientip();
+                                    quit += " QUIT :EOF From client\r\n";
+                                    const char *buff= quit.c_str();
+                                    send(*vit, buff, strlen(buff),0);
+                                    if (*vit == pfds[i].fd)
+                                    {
+                                        it->second->clients_fd.erase(vit);
+                                        break;
+                                    }
+                                }
+                            }
+                            else if (it->second->clients_fd.size() > 0 && it->second->_operators_fd.size() > 0)
+                            {
+                                std::vector<int>::iterator vit;
+                                if (it->second->_operators_fd.size() == 1 && it->second->_operators_fd[0] == pfds[i].fd)
+                                {
+                                    std::vector<int>::iterator oit = it->second->clients_fd.begin();
+                                    oper_rply(it->second->_chan_name, it->second->_operators_fd[0], *oit, " +o ");
+                                    it->second->_operators_fd.push_back(*oit);
+                                    std::string notice = ":" + cl[pfds[i].fd].get_nickname() + "!~" + cl[pfds[i].fd].get_username() + "@" + cl[pfds[i].fd].get_clientip();
+                                    notice += " QUIT :EOF From client\r\n";
+                                    const char *buff = notice.c_str();
+                                    send(*oit, buff, strlen(buff),0);
+                                    it->second->clients_fd.erase(oit);
+                                }
+                                for (vit = it->second->_operators_fd.begin(); vit != it->second->_operators_fd.end(); ++vit)
+                                {
+                                    std::string quit = ":" + cl[pfds[i].fd].get_nickname() + "!~" + cl[pfds[i].fd].get_username() + "@" + cl[pfds[i].fd].get_clientip();
+                                    quit += " QUIT :EOF From client\r\n";
+                                    const char *buff= quit.c_str();
+                                    send(*vit, buff, strlen(buff),0);
+                                    if (*vit == pfds[i].fd)
+                                    {
+                                        it->second->_operators_fd.erase(vit);
+                                        break;
                                     }
                                 }
                                 std::vector<int>::iterator cit;
-                                for (cit = it->second->clients_fd.begin(); cit != it->second->clients_fd.end(); ++cit){
+                                for (cit = it->second->clients_fd.begin(); cit != it->second->clients_fd.end(); ++cit)
+                                {
+                                    //:lop!~h@197.230.30.146 QUIT :EOF From client
+                                    std::string notice = ":" + cl[pfds[i].fd].get_nickname() + "!~" + cl[pfds[i].fd].get_username() + "@" + cl[pfds[i].fd].get_clientip();
+                                    notice += " QUIT :EOF From client\r\n";
+                                    const char *buff = notice.c_str();
+                                    send(*cit, buff, strlen(buff),0);
                                     if (*cit == pfds[i].fd)
                                     {
                                         it->second->clients_fd.erase(cit);
-                                        break ;
+                                        break;
                                     }
                                 }
                             }

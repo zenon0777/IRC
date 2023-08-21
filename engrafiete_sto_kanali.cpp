@@ -262,7 +262,7 @@ bool server::reply(std::string name, int cfd, bool flag)
             tmp = cl[fds[i]].get_nickname();
             chan_members += tmp;
             chan_members += " ";
-            std::string notif = ":" + cl[cfd].get_nickname() + "!~" + cl[cfd].get_username() + "@" + cl[cfd].get_clientip();
+            std::string notif = ":" + cl[cfd].get_nickname() + "!~" + cl[cfd].get_username() + "@" + cl[cfd].get_host();
             notif += " JOIN :" + name + "\r\n";
             const char *rpl = notif.c_str();
             if (fds[i] != cfd)
@@ -276,7 +276,7 @@ bool server::reply(std::string name, int cfd, bool flag)
         std::string tmpl;
         tmpl = cl[opers[j]].get_nickname();
         chan_opers += tmpl;
-        std::string notif = ":" + cl[cfd].get_nickname() + "!~" + cl[cfd].get_username() + "@" + cl[cfd].get_clientip();
+        std::string notif = ":" + cl[cfd].get_nickname() + "!~" + cl[cfd].get_username() + "@" + cl[cfd].get_host();
         notif += " JOIN :" + name + "\r\n";
         const char *rpl = notif.c_str();
         if (opers[j] != cfd)
@@ -287,7 +287,7 @@ bool server::reply(std::string name, int cfd, bool flag)
     
     if (flag == true)
     {
-        std::string rpl = ":" + cl[cfd].get_nickname() + "!~" + cl[cfd].get_username() + "@" + cl[cfd].get_clientip() + " JOIN :"+ name + "\r\n";
+        std::string rpl = ":" + cl[cfd].get_nickname() + "!~" + cl[cfd].get_username() + "@" + cl[cfd].get_host() + " JOIN :"+ name + "\r\n";
         rpl += ":" + cl[cfd].get_host() + " 353 " + cl[cfd].get_nickname() + " = " + name + " :" + chan_members + "@" + chan_opers + "\r\n"; 
         rpl += ":" + cl[cfd].get_host() + " 366 " + cl[cfd].get_nickname() + " " + name + " :End of /NAMES list.";
         rpl += "\r\n";

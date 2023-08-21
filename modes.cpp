@@ -116,7 +116,7 @@ void server::key_reply(std::string name, int oper, std::string mssg)
     }
 }
 
-void server::take_opers(std::vector<std::string> vec, int client_fd)
+bool server::take_opers(std::vector<std::string> vec, int client_fd)
 {
     int cfd = get_clientfd(vec[3]);
     // if isoperato already
@@ -125,6 +125,7 @@ void server::take_opers(std::vector<std::string> vec, int client_fd)
         std::string err = ":" + cl[client_fd].get_host() + " 401 " + cl[client_fd].get_nickname() + vec[3] + " :No such nick/channel\r\n";
         const char *buff = err.c_str();
         send(client_fd, buff, strlen(buff), 0);
+        return false;
     }
     if (chan_map[vec[1]]->is_operator(cfd) == true && chan_map[vec[1]]->is_operator(client_fd))
     {
@@ -148,6 +149,7 @@ void server::take_opers(std::vector<std::string> vec, int client_fd)
         + " :They aren't on that channel\r\n";
         const char *buff = err.c_str();
         send(client_fd, buff, strlen(buff), 0);
+        return false;
     }
     else if (chan_map[vec[1]]->is_operator(client_fd) == false)
     {
@@ -155,8 +157,9 @@ void server::take_opers(std::vector<std::string> vec, int client_fd)
         err += " :You're not channel operator\r\n";
         const char *buff = err.c_str();
         send(cfd, buff, strlen(buff), 0);
-        return ;
+        return false;
     }
+    return true;
 }
 
 void server::add_opers(std::vector<std::string> vec, int client_fd)
@@ -168,6 +171,7 @@ void server::add_opers(std::vector<std::string> vec, int client_fd)
         std::string err = ":" + cl[client_fd].get_host() + " 401 " + cl[client_fd].get_nickname() + vec[3] + " :No such nick/channel\r\n";
         const char *buff = err.c_str();
         send(client_fd, buff, strlen(buff), 0);
+        return ;
     }
     if (chan_map[vec[1]]->is_member(cfd) == true && chan_map[vec[1]]->is_operator(client_fd))
     {
@@ -190,6 +194,7 @@ void server::add_opers(std::vector<std::string> vec, int client_fd)
         + " :They aren't on that channel\r\n";
         const char *buff = err.c_str();
         send(client_fd, buff, strlen(buff), 0);
+        return ;
     }
     else if (chan_map[vec[1]]->is_operator(client_fd) == false)
     {
@@ -201,14 +206,15 @@ void server::add_opers(std::vector<std::string> vec, int client_fd)
     }
 }
 
-void server::take_pass(std::vector<std::string> vec, int client_fd)
+bool server::take_pass(std::vector<std::string> vec, int client_fd)
 {
     key_reply(vec[1], client_fd, " -k ");
     chan_map[vec[1]]->secure = false;
     chan_map[vec[1]]->chan_password = "";
+    return true;
 }
 
-bool server::take_mode(int cfd, std::vector<std::string> vec)
+bool server:: take_mode(int cfd, std::vector<std::string> vec)
 {
     if (is_operator(vec[1], cfd) == true)
     {
@@ -275,7 +281,6 @@ void server::mode_change(std::vector<std::string> vec, int client_fd)
         send(client_fd, buff, strlen(buff), 0);
         return ;
     }
-    std::cout << "Still here\n";
     if (is_channelexist(vec[1]) == true)
     {
         if (is_operator(vec[1], client_fd))
@@ -323,9 +328,7 @@ void server::mode_change(std::vector<std::string> vec, int client_fd)
                     limite_reply(vec[1], client_fd, vec[3]);
                 }
                 else
-                {
                     add_mode(client_fd, vec);
-                }
             }
             else if (*(vec[2].begin()) == '-')
             {

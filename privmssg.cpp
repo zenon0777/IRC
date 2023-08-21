@@ -64,26 +64,14 @@ bool server::handle_recievers(std::vector<std::string> vec, int c_fd)
                 {
                     std::cout << chan_map[nicks[i]]->clients_fd[j] << std::endl;
                     // operators
-                    if (chan_map[nicks[i]]->clients_fd[j] > 0)
+                    if (chan_map[nicks[i]]->clients_fd[j] > 0 && chan_map[nicks[i]]->clients_fd[j] != c_fd)
                         send_messg(mssg, c_fd, chan_map[nicks[i]]->clients_fd[j], nicks[i]);
-                    else
-                    {
-                        std::string err = ":" + cl[c_fd].get_host() + " 401 " + cl[c_fd].get_nickname() + " " + nicks[i] + " :No such nick/channel\r\n";
-                        const char *buff = err.c_str();
-                        send(c_fd, buff, strlen(buff), 0);
-                    }
                 }
                 for(size_t k = 0; k < chan_map[nicks[i]]->_operators_fd.size(); k++)
                 {
                     std::cout << chan_map[nicks[i]]->_operators_fd[k] << std::endl;
-                    if (chan_map[nicks[i]]->_operators_fd[k] > 0)
+                    if (chan_map[nicks[i]]->_operators_fd[k] > 0 && chan_map[nicks[i]]->_operators_fd[k] != c_fd)
                         send_messg(mssg, c_fd, chan_map[nicks[i]]->_operators_fd[k], nicks[i]);
-                    else
-                    {
-                        std::string err = ":" + cl[c_fd].get_host() + " 401 " + cl[c_fd].get_nickname() + " " + nicks[i] + " :No such nick/channel\r\n";
-                        const char *buff = err.c_str();
-                        send(c_fd, buff, strlen(buff), 0);
-                    }
                 }
             }
             else if (is_channelexist(nicks[i]) ==  false)
