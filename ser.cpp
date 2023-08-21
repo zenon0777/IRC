@@ -179,21 +179,22 @@ bool server::cmd_handler(char *buff, int client_fd)
     cmd = trim(cmd, " \t\n\r");
     std::vector<std::string> vec;
     std::vector<std::string> cmd_1;
-    vec = splite(cmd, ' ');
-    std::cout << cmd << std::endl;
-    if (cmd.find_last_of('\r') != std::string::npos)
+    cmd_1 = splite(cmd, '\n');
+    for (size_t i =0; i < cmd_1.size(); i++)
     {
-        cmd_1 = splite(cmd, '\n');
-        for (size_t i =0; i < cmd_1.size(); i++)
+        cmd = cmd_1[i];
+        vec = splite(cmd, ' ');
+        for (size_t i = 0; i <= vec[0].length(); i++)
         {
-            cmd = cmd_1[i];
-            vec = splite(cmd, ' ');
-            if (command_parse(vec, client_fd) == false)
-                return false;
+            vec[0][i] = toupper(vec[0][i]);
         }
-    }
-    else
-    {
+        if (vec[0] != "PASS" && vec[0] != "USER" && vec[0] != "NICK" && vec[0] != "JOIN" && vec[0] != "MODE" && vec[0] != "TOPIC" && \
+        vec[0] != "INVITE" && vec[0] != "KICK")
+        {
+            std::string notif = ":" + cl[client_fd].get_host() + " 421 " + cl[client_fd].get_nickname() + " " + cmd + " :Unknown command\r\n";
+            const char *buff = notif.c_str();
+            send(client_fd, buff, strlen(buff), 0);
+        }
         if (command_parse(vec, client_fd) == false)
             return false;
     }

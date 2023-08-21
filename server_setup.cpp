@@ -25,7 +25,7 @@ int server::server_socket()
         perror("bind : error");
         exit(1);
     }
-    if (listen(sfd, 10) == -1)
+    if (listen(sfd, g_max_clients) == -1)
     {
         perror("listen :error");
         exit(1);
@@ -89,13 +89,8 @@ int server::server_setup()
                 std::cout << "bytes read:" << nbytes << std::endl;
                 if (nbytes <= 0)
                 {
-                    // for more optimization we should add signal handler section
-                    
-                    // :lop!~s@5c8c-aff4-7127-3c3-1c20.230.197 QUIT :Client closed connection
-                    // ERROR :Closing Link: 197.230.30.146 (Client closed connection)
                     if (nbytes == 0)
                     {
-                        /// a traiter
                         if (!cl.empty())
                         {
                             std::string quit = ":" + cl[pfds[i].fd].get_nickname() + "!~" + cl[pfds[i].fd].get_username()+"@";
@@ -159,17 +154,6 @@ int server::server_setup()
                             else if (it->second->clients_fd.size() > 0 && it->second->_operators_fd.size() > 0)
                             {
                                 std::vector<int>::iterator vit;
-                                if (it->second->_operators_fd.size() == 1 && it->second->_operators_fd[0] == pfds[i].fd)
-                                {
-                                    std::vector<int>::iterator oit = it->second->clients_fd.begin();
-                                    oper_rply(it->second->_chan_name, it->second->_operators_fd[0], *oit, " +o ");
-                                    it->second->_operators_fd.push_back(*oit);
-                                    std::string notice = ":" + cl[pfds[i].fd].get_nickname() + "!~" + cl[pfds[i].fd].get_username() + "@" + cl[pfds[i].fd].get_clientip();
-                                    notice += " QUIT :EOF From client\r\n";
-                                    const char *buff = notice.c_str();
-                                    send(*oit, buff, strlen(buff),0);
-                                    it->second->clients_fd.erase(oit);
-                                }
                                 for (vit = it->second->_operators_fd.begin(); vit != it->second->_operators_fd.end(); ++vit)
                                 {
                                     std::string quit = ":" + cl[pfds[i].fd].get_nickname() + "!~" + cl[pfds[i].fd].get_username() + "@" + cl[pfds[i].fd].get_clientip();
@@ -199,7 +183,7 @@ int server::server_setup()
                             }
                         }
                     }
-                    else
+                    else if (nbytes < 0)
                         perror("error : reciveing mssg");
                     cl.erase(pfds[i].fd);
                     close(pfds[i].fd);

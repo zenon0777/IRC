@@ -26,11 +26,11 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <poll.h>
-#include<curl/curl.h>
+#include <curl/curl.h>
 #include "channel.hpp"
 
-#define g_max_clients 10
-const std::string API_KEY = "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";
+#define g_max_clients 3
+const std::string API_KEY = "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";
 const std::string API_URL = "https://api.openai.com/v1/chat/completions";
 class server
 {
