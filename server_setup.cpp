@@ -64,9 +64,12 @@ int server::server_setup()
         if (pfds[0].revents & POLLIN)
         {
             addr_len = sizeof(client);
-            if ((cfd = accept(sfd, (struct sockaddr *)&client, &addr_len)) == -1)
-                perror("eroor");
-            pfds.push_back((struct pollfd){cfd, POLLIN, nfds++});
+            if (nfds < g_max_clients + 1)
+            {
+                if ((cfd = accept(sfd, (struct sockaddr *)&client, &addr_len)) == -1)
+                    perror("eroor");
+                pfds.push_back((struct pollfd){cfd, POLLIN, nfds++});
+            }
         }
         for (size_t i = 0; i < pfds.size(); ++i)
         {
@@ -189,6 +192,7 @@ int server::server_setup()
                     close(pfds[i].fd);
                     pfds.erase(pfds.begin() + i);
                     --i;
+                    --nfds;
                     continue;
                 }
                 else if (nbytes > 0)
@@ -204,6 +208,7 @@ int server::server_setup()
                 continue;
             }
         }
+        std::cout << "number of clients ::: " << nfds << std::endl;
     }
     std::map<std::string, channel*>::iterator it;
     for (it= chan_map.begin(); it !=chan_map.end(); ++it)
