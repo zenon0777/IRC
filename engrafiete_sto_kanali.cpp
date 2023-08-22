@@ -152,7 +152,7 @@ bool server::engrafiete_sto_kanali(std::vector<std::string> vec, int client_fd)
         {
             if (client_exist(chans[i], client_fd) == true)
                 return true;
-            if (!key.empty() && !key[i].empty())
+            if (!key.empty() && !key[i].empty() && i <= key.size() - 1)
             {
                 if (chan_map[chans[i]]->is_inviteonly)
                 {

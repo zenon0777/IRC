@@ -146,6 +146,7 @@ bool channel::add_channel(std::string _chan_name,Client &cl, bool _secure)
     this->is_limited = false;
     this->user_limite = 0;
     this->nbr_member = 1;
+    this->chan_password = "";
     this->user_nickname[cl.get_clientfd()] = cl.get_nickname();
     // this->chan_members.insert(std::pair<std::string,std::vector<int> >(_chan_name, this->clients_fd));
     //handle user operator and send all mssg and list cmds to execute
