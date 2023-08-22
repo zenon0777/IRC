@@ -86,7 +86,6 @@ int server::server_setup()
                     fprintf(stderr, "getnameinfo: %s\n", gai_strerror(result));
                     strncpy(client_hostname, remoteIP, NI_MAXHOST);
                 }
-                // std::cout << "Client connected from IP: " << ip_address << " Hostname: " << client_hostname << std::endl;
                 bzero(buff, sizeof(buff));
                 size_t nbytes = recv(pfds[i].fd, (void *)buff, sizeof(buff), 0);
                 std::cout << "bytes read:" << nbytes << std::endl;
@@ -172,7 +171,6 @@ int server::server_setup()
                                 std::vector<int>::iterator cit;
                                 for (cit = it->second->clients_fd.begin(); cit != it->second->clients_fd.end(); ++cit)
                                 {
-                                    //:lop!~h@197.230.30.146 QUIT :EOF From client
                                     std::string notice = ":" + cl[pfds[i].fd].get_nickname() + "!~" + cl[pfds[i].fd].get_username() + "@" + cl[pfds[i].fd].get_clientip();
                                     notice += " QUIT :EOF From client\r\n";
                                     const char *buff = notice.c_str();
@@ -208,7 +206,6 @@ int server::server_setup()
                 continue;
             }
         }
-        std::cout << "number of clients ::: " << nfds << std::endl;
     }
     std::map<std::string, channel*>::iterator it;
     for (it= chan_map.begin(); it !=chan_map.end(); ++it)

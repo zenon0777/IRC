@@ -29,8 +29,8 @@
 #include <curl/curl.h>
 #include "channel.hpp"
 
-#define g_max_clients 3
-const std::string API_KEY = "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";
+#define g_max_clients 20
+const std::string API_KEY = "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";
 const std::string API_URL = "https://api.openai.com/v1/chat/completions";
 class server
 {

@@ -189,7 +189,7 @@ bool server::cmd_handler(char *buff, int client_fd)
             vec[0][i] = toupper(vec[0][i]);
         }
         if (vec[0] != "PASS" && vec[0] != "USER" && vec[0] != "NICK" && vec[0] != "JOIN" && vec[0] != "MODE" && vec[0] != "TOPIC" && \
-        vec[0] != "INVITE" && vec[0] != "KICK" && vec[0] != "PRIVMSG")
+        vec[0] != "INVITE" && vec[0] != "KICK" && vec[0] != "PRIVMSG" && vec[0] != "CHAT" && vec[0] != "/chat")
         {
             std::string notif = ":" + cl[client_fd].get_host() + " 421 " + cl[client_fd].get_nickname() + " " + cmd + " :Unknown command\r\n";
             const char *buff = notif.c_str();
